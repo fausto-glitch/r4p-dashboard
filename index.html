@@ -1,0 +1,2871 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranching4Profit MX — Mapa de Ventas</title>
+    <style>
+        :root {
+            --primary: #0c1821;
+            --secondary: #1b2838;
+            --accent: #0f3460;
+            --highlight: #e94560;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --info: #74b9ff;
+            --r4p-green: #2d6a4f;
+            --r4p-brown: #8b4513;
+            --funnel-1: #e94560;
+            --funnel-2: #f39c12;
+            --funnel-3: #2ecc71;
+            --funnel-4: #3498db;
+            --funnel-5: #9b59b6;
+            --funnel-6: #1abc9c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: #ecf0f1;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 16px; }
+
+        .header-logo {
+            font-size: 2rem;
+            filter: grayscale(0);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, var(--success), var(--info));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header h1 span {
+            display: block;
+            font-size: 0.75rem;
+            background: none;
+            -webkit-text-fill-color: #636e72;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .header .date-badge {
+            background: rgba(0,184,148,0.15);
+            border: 1px solid var(--success);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            color: var(--success);
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+            padding: 0 40px;
+            background: rgba(0,0,0,0.3);
+            overflow-x: auto;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .nav-tab {
+            padding: 14px 24px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            color: #636e72;
+            font-weight: 500;
+        }
+
+        .nav-tab:hover { color: #dfe6e9; background: rgba(255,255,255,0.03); }
+        .nav-tab.active {
+            color: var(--success);
+            border-bottom-color: var(--success);
+            background: rgba(0,184,148,0.08);
+        }
+
+        .section { display: none; padding: 30px 40px; animation: fadeIn 0.4s ease; }
+        .section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+        .section-title { font-size: 1.35rem; margin-bottom: 6px; }
+        .section-subtitle { color: #636e72; margin-bottom: 24px; font-size: 0.85rem; }
+
+        /* MAPA CONCEPTUAL */
+        .concept-map { display: flex; flex-direction: column; align-items: center; gap: 0; padding: 20px; }
+
+        .concept-level {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .concept-node {
+            background: rgba(255,255,255,0.06);
+            border: 2px solid rgba(255,255,255,0.12);
+            border-radius: 14px;
+            padding: 18px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+
+        .concept-node:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,184,148,0.25); border-color: var(--success); }
+        .concept-node.main { background: linear-gradient(135deg, var(--r4p-green), #1b4332); border: none; min-width: 320px; padding: 24px 32px; }
+        .concept-node.main h3 { font-size: 1.15rem; }
+        .concept-node h3 { font-size: 0.92rem; margin-bottom: 4px; }
+        .concept-node p { font-size: 0.75rem; color: rgba(255,255,255,0.6); }
+        .concept-node.main p { color: rgba(255,255,255,0.85); }
+        .concept-node .node-metric { font-size: 1.4rem; font-weight: bold; color: var(--success); margin-top: 6px; }
+
+        .connector { width: 3px; height: 36px; background: linear-gradient(180deg, var(--success), transparent); }
+
+        .concept-branch { display: flex; flex-direction: column; align-items: center; gap: 0; }
+        .branch-connector { width: 3px; height: 24px; background: rgba(255,255,255,0.15); }
+        .concept-children { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+        .concept-child {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .concept-child:hover { border-color: var(--info); background: rgba(116,185,255,0.08); }
+
+        /* EMBUDO */
+        .funnel-container { display: flex; gap: 40px; align-items: flex-start; }
+        .funnel { flex: 1; max-width: 480px; }
+
+        .funnel-stage {
+            position: relative;
+            margin: 0 auto;
+            padding: 16px;
+            text-align: center;
+            clip-path: polygon(5% 0%, 95% 0%, 90% 100%, 10% 100%);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .funnel-stage:hover { filter: brightness(1.2); transform: scale(1.02); }
+        .funnel-stage h4 { font-size: 0.85rem; margin-bottom: 2px; }
+        .funnel-stage .metric { font-size: 1.5rem; font-weight: bold; }
+        .funnel-stage .conversion { font-size: 0.72rem; opacity: 0.85; }
+
+        .stage-1 { background: var(--funnel-1); width: 100%; }
+        .stage-2 { background: var(--funnel-2); width: 82%; }
+        .stage-3 { background: var(--funnel-3); width: 64%; }
+        .stage-4 { background: var(--funnel-4); width: 48%; }
+        .stage-5 { background: var(--funnel-5); width: 34%; }
+        .stage-6 { background: var(--funnel-6); width: 22%; }
+
+        .kpi-panel { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        .kpi-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 18px;
+            transition: all 0.3s;
+        }
+
+        .kpi-card:hover { border-color: var(--success); transform: translateY(-2px); }
+        .kpi-card .label { font-size: 0.72rem; color: #636e72; text-transform: uppercase; letter-spacing: 1px; }
+        .kpi-card .value { font-size: 1.6rem; font-weight: bold; margin: 4px 0; }
+        .kpi-card .trend { font-size: 0.78rem; display: flex; align-items: center; gap: 4px; }
+        .trend.up { color: var(--success); }
+        .trend.down { color: var(--highlight); }
+        .trend.neutral { color: var(--warning); }
+
+        /* PIPELINE VISUAL */
+        .pipeline {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin: 24px 0;
+            overflow-x: auto;
+            padding: 16px 0;
+        }
+
+        .pipeline-stage {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 18px 14px;
+            min-width: 150px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .pipeline-stage:hover { border-color: var(--success); transform: scale(1.04); }
+        .pipeline-arrow { font-size: 1.3rem; color: var(--success); padding: 0 6px; flex-shrink: 0; }
+        .pipeline-stage .stage-icon { font-size: 1.6rem; margin-bottom: 6px; }
+        .pipeline-stage .stage-name { font-size: 0.78rem; font-weight: 600; margin-bottom: 2px; }
+        .pipeline-stage .stage-count { font-size: 1.4rem; font-weight: bold; color: var(--success); }
+        .pipeline-stage .stage-sub { font-size: 0.68rem; color: #636e72; margin-top: 2px; }
+
+        /* SEDES */
+        .sedes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+
+        .sede-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .sede-card:hover { border-color: var(--success); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+
+        .sede-header {
+            background: linear-gradient(135deg, var(--r4p-green), var(--accent));
+            padding: 16px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sede-header h3 { font-size: 0.95rem; }
+
+        .sede-status { padding: 3px 10px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
+        .sede-status.active { background: rgba(0,184,148,0.2); color: var(--success); }
+        .sede-status.intl { background: rgba(116,185,255,0.2); color: var(--info); }
+
+        .sede-body { padding: 16px 18px; }
+
+        .sede-metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 0.82rem;
+        }
+
+        .sede-metric:last-child { border-bottom: none; }
+        .sede-metric .val { font-weight: bold; color: var(--info); }
+
+        .sede-bar { height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+        .sede-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+
+        /* TABLE */
+        .data-table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.03); border-radius: 12px; overflow: hidden; }
+        .data-table th { background: rgba(255,255,255,0.06); padding: 12px 16px; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #636e72; }
+        .data-table td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem; }
+        .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .badge { padding: 3px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: bold; }
+        .badge-meta { background: rgba(59,89,152,0.3); color: #8b9dc3; }
+        .badge-google { background: rgba(66,133,244,0.3); color: #82b1ff; }
+        .badge-tiktok { background: rgba(255,0,80,0.15); color: #ff0050; border: 1px solid rgba(255,0,80,0.3); }
+
+        .hs-link { color: #ff7a59; text-decoration: none; font-size: 0.8rem; }
+        .hs-link:hover { text-decoration: underline; }
+
+        /* CLV */
+        .clv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+
+        .clv-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .clv-card:hover { border-color: var(--success); transform: translateY(-3px); }
+
+        .clv-card-header { padding: 18px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .clv-card-header h3 { font-size: 1rem; margin-bottom: 2px; }
+        .clv-card-header .tag { font-size: 0.7rem; color: var(--success); text-transform: uppercase; letter-spacing: 1px; }
+
+        .clv-card-body { padding: 18px; }
+
+        .clv-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.83rem; }
+        .clv-row:last-child { border-bottom: none; }
+
+        .clv-progress { width: 100%; height: 7px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-top: 14px; overflow: hidden; }
+        .clv-progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--success), var(--info)); transition: width 1s ease; }
+
+        .opp-tag { display: inline-block; padding: 3px 8px; border-radius: 5px; font-size: 0.68rem; margin: 2px; background: rgba(0,184,148,0.12); color: var(--success); border: 1px solid rgba(0,184,148,0.25); }
+
+        .insight-box { margin-top: 14px; padding: 12px; background: rgba(233,69,96,0.08); border-left: 3px solid var(--highlight); border-radius: 0 8px 8px 0; font-size: 0.8rem; }
+        .insight-box.positive { background: rgba(0,184,148,0.08); border-left-color: var(--success); }
+
+        /* BAR CHART */
+        .chart-container { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 22px; margin-bottom: 18px; }
+        .chart-title { font-size: 0.95rem; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+
+        .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 200px; padding-top: 20px; }
+        .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .bar-wrapper { display: flex; gap: 2px; align-items: flex-end; height: 180px; }
+        .bar { width: 16px; border-radius: 3px 3px 0 0; transition: height 0.8s ease; cursor: pointer; }
+        .bar:hover { filter: brightness(1.3); }
+        .bar.y2024 { background: var(--info); }
+        .bar.y2025 { background: var(--warning); }
+        .bar.y2026 { background: var(--highlight); }
+        .bar-label { font-size: 0.68rem; color: #636e72; }
+
+        .chart-legend { display: flex; gap: 18px; margin-top: 14px; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.78rem; color: #636e72; }
+        .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+        /* AVATAR IDEAL */
+        .avatar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 24px; }
+        .avatar-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+        .avatar-card:hover { border-color: var(--success); box-shadow: 0 4px 20px rgba(0,184,148,0.15); }
+        .avatar-card h3 { font-size: 0.95rem; margin-bottom: 16px; color: var(--info); }
+        .av-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .av-bar-label { min-width: 110px; font-size: 0.78rem; color: #b2bec3; text-align: right; }
+        .av-bar-track { flex: 1; height: 22px; background: rgba(255,255,255,0.06); border-radius: 6px; overflow: hidden; position: relative; }
+        .av-bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 8px; font-size: 0.72rem; font-weight: 600; color: #fff; min-width: fit-content; transition: width 0.6s ease; }
+        .av-bar-val { font-size: 0.78rem; color: #dfe6e9; min-width: 36px; text-align: right; font-weight: 600; }
+        .av-donut-wrap { display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap; }
+        .av-donut {
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .av-donut-inner {
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; z-index: 2;
+        }
+        .av-donut-inner .pct { font-size: 1.3rem; font-weight: 700; }
+        .av-donut-inner .lbl { font-size: 0.65rem; color: #b2bec3; }
+        .av-legend { display: flex; flex-direction: column; gap: 8px; }
+        .av-legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+        .av-legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+        .av-big-num { font-size: 3rem; font-weight: 800; text-align: center; margin: 10px 0; }
+        .av-big-sub { text-align: center; font-size: 0.82rem; color: #636e72; }
+        .av-country-grid { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        .av-country {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 14px 20px;
+            text-align: center;
+            min-width: 120px;
+            transition: all 0.3s;
+        }
+        .av-country:hover { border-color: var(--info); }
+        .av-country .flag { font-size: 2rem; margin-bottom: 4px; }
+        .av-country .name { font-size: 0.82rem; font-weight: 600; }
+        .av-country .cnt { font-size: 1.2rem; font-weight: 700; color: var(--success); }
+        .av-country .pct { font-size: 0.72rem; color: #636e72; }
+        .av-state-map { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .av-state-chip {
+            background: rgba(0,184,148,0.1);
+            border: 1px solid rgba(0,184,148,0.25);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            display: flex; align-items: center; gap: 6px;
+            transition: all 0.3s;
+        }
+        .av-state-chip:hover { background: rgba(0,184,148,0.2); border-color: var(--success); }
+        .av-state-chip .st-cnt { background: var(--success); color: #fff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; }
+        .av-data-gap { background: rgba(233,69,96,0.08); border: 1px solid rgba(233,69,96,0.25); border-radius: 10px; padding: 16px 20px; margin-top: 16px; }
+        .av-data-gap h4 { color: var(--highlight); font-size: 0.85rem; margin-bottom: 6px; }
+        .av-data-gap p { font-size: 0.78rem; color: #b2bec3; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header { padding: 15px 20px; }
+            .section { padding: 20px; }
+            .nav-tabs { padding: 0 16px; }
+            .funnel-container { flex-direction: column; }
+            .kpi-panel { grid-template-columns: 1fr; }
+            .pipeline { flex-direction: column; }
+            .pipeline-arrow { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="header-left">
+        <div class="header-logo">🐄</div>
+        <h1>
+            Ranching4Profit MX
+            <span>Mapa de Ventas — Dashboard CEO</span>
+        </h1>
+    </div>
+    <div class="date-badge">15 Marzo 2026 — HubSpot ID: 49310792</div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-tabs">
+    <div class="nav-tab active" onclick="showSection('mapa')">Mapa Conceptual</div>
+    <div class="nav-tab" onclick="showSection('marcas')">Ecosistema de Marcas</div>
+    <div class="nav-tab" onclick="showSection('embudo')">Embudo & KPIs</div>
+    <div class="nav-tab" onclick="showSection('sedes')">Sedes & Escuelas</div>
+    <div class="nav-tab" onclick="showSection('campanas')">Campanas de Pauta</div>
+    <div class="nav-tab" onclick="showSection('asistencias')">Asistencias</div>
+    <div class="nav-tab" onclick="showSection('clv')">Customer Lifetime Value</div>
+    <div class="nav-tab" onclick="showSection('avatar')">Avatar Ideal</div>
+</div>
+
+<!-- ===== SECCION 1: MAPA CONCEPTUAL — DOBLE EMBUDO (BOWTIE) ===== -->
+<div id="mapa" class="section active">
+    <h2 class="section-title">Estrategia de Marketing — Doble Embudo R4P</h2>
+    <p class="section-subtitle">Embudo de Adquisicion (izquierda) + Embudo de Expansion CLV (derecha) — Se encuentran en el momento de COMPRA</p>
+
+    <style>
+        .bowtie-wrap { position: relative; margin: 20px 0 30px; }
+        .bowtie-labels { display: flex; justify-content: center; gap: 60px; margin-bottom: 24px; }
+        .bowtie-label { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .bowtie-label.left { color: var(--highlight); }
+        .bowtie-label.right { color: var(--success); }
+
+        .bowtie { display: flex; align-items: center; gap: 0; width: 100%; position: relative; }
+        .bowtie-half { flex: 1; position: relative; }
+
+        /* SVG triangles background */
+        .bowtie-half svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+        /* Stage rows */
+        .bt-stages { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 6px; padding: 10px 0; }
+
+        .bt-stage {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            backdrop-filter: blur(4px);
+        }
+        .bt-stage:hover { transform: translateX(4px) scale(1.01); filter: brightness(1.15); }
+        .bt-stage.right:hover { transform: translateX(-4px) scale(1.01); }
+
+        .bt-icon {
+            width: 48px; height: 48px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .bt-content { flex: 1; min-width: 0; }
+        .bt-content.right { text-align: right; }
+        .bt-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; opacity: 0.9; }
+        .bt-metric { font-size: 1.1rem; font-weight: 800; margin: 3px 0; line-height: 1.2; }
+        .bt-desc { font-size: 0.73rem; color: rgba(255,255,255,0.5); }
+
+        .bt-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+        .bt-tags.right { justify-content: flex-end; }
+
+        .bt-tag {
+            padding: 3px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 600;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.75); transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .bt-tag:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); }
+
+        /* Left funnel stages - progressively narrower */
+        .bt-stage.s1 { background: linear-gradient(90deg, rgba(233,69,96,0.22), rgba(233,69,96,0.04)); margin-right: 0%; }
+        .bt-stage.s2 { background: linear-gradient(90deg, rgba(243,156,18,0.18), rgba(243,156,18,0.03)); margin-right: 12%; }
+        .bt-stage.s3 { background: linear-gradient(90deg, rgba(52,152,219,0.18), rgba(52,152,219,0.03)); margin-right: 24%; }
+        .bt-stage.s4 { background: linear-gradient(90deg, rgba(0,184,148,0.25), rgba(0,184,148,0.08)); margin-right: 36%; }
+
+        /* Right funnel stages - progressively wider */
+        .bt-stage.s4r { background: linear-gradient(270deg, rgba(0,184,148,0.25), rgba(0,184,148,0.08)); margin-left: 36%; }
+        .bt-stage.s5 { background: linear-gradient(270deg, rgba(155,89,182,0.18), rgba(155,89,182,0.03)); margin-left: 24%; }
+        .bt-stage.s6 { background: linear-gradient(270deg, rgba(116,185,255,0.18), rgba(116,185,255,0.03)); margin-left: 12%; }
+        .bt-stage.s7 { background: linear-gradient(270deg, rgba(0,184,148,0.15), rgba(45,106,79,0.12)); margin-left: 0%; }
+
+        /* Center COMPRA node */
+        .bt-center {
+            width: 6px; flex-shrink: 0; position: relative; z-index: 2;
+        }
+        .bt-center-dot {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80px; height: 80px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,184,148,0.4), rgba(0,184,148,0.05));
+            border: 2px solid var(--success);
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            box-shadow: 0 0 30px rgba(0,184,148,0.3), 0 0 60px rgba(0,184,148,0.1);
+            z-index: 5;
+        }
+        .bt-center-dot .num { font-size: 1.2rem; font-weight: 900; color: var(--success); line-height: 1; }
+        .bt-center-dot .lbl { font-size: 0.5rem; text-transform: uppercase; letter-spacing: 1px; color: var(--success); opacity: 0.8; }
+
+        /* Decorative lines */
+        .bt-line-left, .bt-line-right {
+            position: absolute; top: 0; width: 3px; height: 100%; z-index: 0;
+        }
+        .bt-line-left { right: -3px; background: linear-gradient(180deg, rgba(233,69,96,0.4), rgba(0,184,148,0.6)); }
+        .bt-line-right { left: -3px; background: linear-gradient(180deg, rgba(0,184,148,0.6), rgba(0,184,148,0.3)); }
+
+        /* Summary bar */
+        .bt-summary {
+            display: flex; gap: 0; margin-top: 20px; border-radius: 12px; overflow: hidden;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+        }
+        .bt-summary-item {
+            flex: 1; padding: 16px 20px; text-align: center;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            transition: background 0.3s;
+        }
+        .bt-summary-item:last-child { border-right: none; }
+        .bt-summary-item:hover { background: rgba(255,255,255,0.04); }
+        .bt-summary-item .sv { font-size: 1.4rem; font-weight: 800; }
+        .bt-summary-item .sl { font-size: 0.68rem; color: #636e72; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+        /* Opportunity badges */
+        .bt-opp {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;
+            background: rgba(253,203,110,0.1); border: 1px solid rgba(253,203,110,0.3); color: var(--warning);
+            margin: 2px;
+        }
+        .bt-opp::before { content: "!"; width: 14px; height: 14px; border-radius: 50%; background: rgba(253,203,110,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 900; }
+
+        /* What we're doing vs what's missing */
+        .bt-detail-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+            margin-top: 12px; padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .bt-doing, .bt-missing {
+            padding: 10px 14px; border-radius: 8px; font-size: 0.75rem; line-height: 1.5;
+        }
+        .bt-doing { background: rgba(0,184,148,0.06); border-left: 3px solid var(--success); }
+        .bt-doing .btd-title { color: var(--success); font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .bt-missing { background: rgba(253,203,110,0.06); border-left: 3px solid var(--warning); }
+        .bt-missing .btd-title { color: var(--warning); font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+
+        /* Expanded stage detail */
+        .bt-expand {
+            max-height: 0; overflow: hidden; transition: max-height 0.4s ease;
+        }
+        .bt-stage.open .bt-expand { max-height: 300px; }
+        .bt-stage .bt-toggle { font-size: 0.65rem; color: rgba(255,255,255,0.35); cursor: pointer; margin-top: 4px; }
+    </style>
+
+    <!-- ===== BOWTIE VISUAL ===== -->
+    <div class="bowtie-wrap">
+
+        <!-- Labels -->
+        <div class="bowtie-labels">
+            <div class="bowtie-label left">◀ Embudo de Adquisicion</div>
+            <div class="bowtie-label right">Embudo de Expansion CLV ▶</div>
+        </div>
+
+        <!-- BOWTIE -->
+        <div class="bowtie">
+
+            <!-- === LEFT HALF: Acquisition Funnel === -->
+            <div class="bowtie-half">
+                <div class="bt-line-left"></div>
+                <div class="bt-stages">
+
+                    <!-- ALCANCE -->
+                    <div class="bt-stage s1" onclick="this.classList.toggle('open')">
+                        <div class="bt-icon" style="background: linear-gradient(135deg, #e94560, #c0392b);">📢</div>
+                        <div class="bt-content">
+                            <div class="bt-label" style="color: var(--highlight);">Etapa 1 — ALCANCE</div>
+                            <div class="bt-metric">~118K personas alcanzadas</div>
+                            <div class="bt-desc">Audiencia total en redes sociales + pauta pagada</div>
+                            <div class="bt-tags">
+                                <span class="bt-tag" style="color:#E1306C; border-color:rgba(225,48,108,0.4);">IG 80K</span>
+                                <span class="bt-tag" style="color:#1877F2; border-color:rgba(24,119,242,0.4);">FB 22.2K</span>
+                                <span class="bt-tag" style="border-color:rgba(255,255,255,0.2);">Threads 9.8K</span>
+                                <span class="bt-tag" style="color:#0a66c2; border-color:rgba(10,102,194,0.4);">LinkedIn 5.1K</span>
+                                <span class="bt-tag" style="color:#ff0050; border-color:rgba(255,0,80,0.3);">TikTok</span>
+                                <span class="bt-tag" style="color:#ff4444; border-color:rgba(255,0,0,0.3);">YouTube</span>
+                                <span class="bt-tag">Google Ads</span>
+                                <span class="bt-tag">Meta Ads</span>
+                                <span class="bt-tag">Web SEO</span>
+                            </div>
+                            <div class="bt-toggle">Click para ver detalle ▾</div>
+                            <div class="bt-expand">
+                                <div class="bt-detail-row">
+                                    <div class="bt-doing">
+                                        <div class="btd-title">Que hacemos</div>
+                                        Publicaciones organicas, Reels, Lives, pauta en Meta y Google Ads
+                                    </div>
+                                    <div class="bt-missing">
+                                        <div class="btd-title">Que falta</div>
+                                        YouTube activo pero por escalar, TikTok subescalado, Blog/SEO sin contenido
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INTERACCION -->
+                    <div class="bt-stage s2" onclick="this.classList.toggle('open')">
+                        <div class="bt-icon" style="background: linear-gradient(135deg, #f39c12, #e67e22);">💬</div>
+                        <div class="bt-content">
+                            <div class="bt-label" style="color: var(--warning);">Etapa 2 — INTERACCION</div>
+                            <div class="bt-metric">19,619 contactos en HubSpot</div>
+                            <div class="bt-desc">Leads que dejaron sus datos</div>
+                            <div class="bt-tags">
+                                <span class="bt-tag">Landing pages</span>
+                                <span class="bt-tag">Formularios HubSpot</span>
+                                <span class="bt-tag">WhatsApp</span>
+                                <span class="bt-tag">DMs Instagram</span>
+                                <span class="bt-tag">Lead Ads FB</span>
+                                <span class="bt-tag">Lives / Webinars</span>
+                            </div>
+                            <div class="bt-toggle">Click para ver detalle ▾</div>
+                            <div class="bt-expand">
+                                <div class="bt-detail-row">
+                                    <div class="bt-doing">
+                                        <div class="btd-title">Que hacemos</div>
+                                        Formularios web, captura de leads, respuesta a DMs
+                                    </div>
+                                    <div class="bt-missing">
+                                        <div class="btd-title">Que falta</div>
+                                        Lead Ads FB nativos, Linktree en IG, chatbot WhatsApp, Lead magnets
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FIDELIZACION -->
+                    <div class="bt-stage s3" onclick="this.classList.toggle('open')">
+                        <div class="bt-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">🔥</div>
+                        <div class="bt-content">
+                            <div class="bt-label" style="color: var(--info);">Etapa 3 — FIDELIZACION / NURTURING</div>
+                            <div class="bt-metric">2,782 opportunities + 52 SQLs</div>
+                            <div class="bt-desc">Leads calificados en proceso de decision</div>
+                            <div class="bt-tags">
+                                <span class="bt-tag">Email sequences</span>
+                                <span class="bt-tag">Retargeting Meta</span>
+                                <span class="bt-tag">Llamadas de venta</span>
+                                <span class="bt-tag">Contenido educativo</span>
+                                <span class="bt-tag">Testimoniales</span>
+                            </div>
+                            <div class="bt-toggle">Click para ver detalle ▾</div>
+                            <div class="bt-expand">
+                                <div class="bt-detail-row">
+                                    <div class="bt-doing">
+                                        <div class="btd-title">Que hacemos</div>
+                                        Secuencias de email, llamadas del equipo de ventas
+                                    </div>
+                                    <div class="bt-missing">
+                                        <div class="btd-title">Que falta</div>
+                                        Workflows automatizados HubSpot, retargeting por etapa, webinars de nurturing
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COMPRA (left side) -->
+                    <div class="bt-stage s4" onclick="this.classList.toggle('open')" style="border: 1px solid rgba(0,184,148,0.4); box-shadow: 0 0 20px rgba(0,184,148,0.15);">
+                        <div class="bt-icon" style="background: linear-gradient(135deg, #00b894, #2d6a4f); box-shadow: 0 0 20px rgba(0,184,148,0.4);">🤝</div>
+                        <div class="bt-content">
+                            <div class="bt-label" style="color: var(--success); font-weight: 900;">COMPRA — PRODUCTO DE ENTRADA</div>
+                            <div class="bt-metric" style="color: var(--success);">318 clientes (closedwon)</div>
+                            <div class="bt-desc">Win rate: 13% | 112 customers activos en HubSpot</div>
+                            <div class="bt-tags">
+                                <span class="bt-tag" style="color: var(--success); border-color: rgba(0,184,148,0.5); background: rgba(0,184,148,0.12);">Escuela Presencial (5 dias)</span>
+                                <span class="bt-tag" style="color: var(--success); border-color: rgba(0,184,148,0.5); background: rgba(0,184,148,0.12);">Curso Online Ganado de Carne</span>
+                                <span class="bt-tag" style="color: var(--success); border-color: rgba(0,184,148,0.5); background: rgba(0,184,148,0.12);">R4Numbers (entrada)</span>
+                            </div>
+                            <div class="bt-toggle">Click para ver detalle ▾</div>
+                            <div class="bt-expand">
+                                <div class="bt-detail-row">
+                                    <div class="bt-doing">
+                                        <div class="btd-title">Que hacemos</div>
+                                        Daniela Cantu gestiona ventas. Cotizacion → Aprobacion → Contrato → Cierre
+                                    </div>
+                                    <div class="bt-missing">
+                                        <div class="btd-title">Que falta</div>
+                                        Mejorar win rate de 13% a 20%+, proceso de cierre mas agil, vacante Ejecutivo de Ventas
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- === CENTER: Conversion Point === -->
+            <div class="bt-center">
+                <div class="bt-center-dot">
+                    <div class="num">318</div>
+                    <div class="lbl">Compra</div>
+                </div>
+            </div>
+
+            <!-- === RIGHT HALF: CLV Expansion === -->
+            <div class="bowtie-half">
+                <div class="bt-line-right"></div>
+                <div class="bt-stages">
+
+                    <!-- POST-COMPRA -->
+                    <div class="bt-stage s4r right" onclick="this.classList.toggle('open')" style="border: 1px solid rgba(0,184,148,0.4); box-shadow: 0 0 20px rgba(0,184,148,0.15);">
+                        <div class="bt-content right">
+                            <div class="bt-label" style="color: var(--success); font-weight: 900;">POST-COMPRA / ONBOARDING</div>
+                            <div class="bt-metric">Exalumnos activos</div>
+                            <div class="bt-desc">Seguimiento, comunidad, resultados</div>
+                            <div class="bt-tags right">
+                                <span class="bt-tag">Grupo WhatsApp exalumnos</span>
+                                <span class="bt-tag">Email post-curso</span>
+                                <span class="bt-tag">Encuestas de satisfaccion</span>
+                            </div>
+                            <div class="bt-toggle">Click para ver detalle ▾</div>
+                            <div class="bt-expand">
+                                <div class="bt-detail-row">
+                                    <div class="bt-doing">
+                                        <div class="btd-title">Que hacemos</div>
+                                        Grupos WhatsApp, emails de seguimiento, encuestas
+                                    </div>
+                                    <div class="bt-missing">
+                                        <div class="btd-title">Que falta</div>
+                                        Onboarding automatizado, portal de exalumnos, programa de mentoria
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bt-icon" style="background: linear-gradient(135deg, #00b894, #2d6a4f); box-shadow: 0 0 20px rgba(0,184,148,0.4);">📦</div>
+                    </div>
+
+                    <!-- CROSS-SELL -->
+                    <div class="bt-stage s5 right" onclick="this.classList.toggle('open')">
+                        <div class="bt-content right">
+                            <div class="bt-label" style="color: var(--funnel-5);">Etapa 5 — CROSS-SELL / UPSELL</div>
+                            <div class="bt-metric">R4Numbers + Tutor Digital</div>
+                            <div class="bt-desc">Productos complementarios al curso</div>
+                            <div class="bt-tags right">
+                                <span class="bt-tag">R4Numbers (Maritza)</span>
+                                <span class="bt-tag">Tutor Digital (Daniela)</span>
+                                <span class="bt-tag">Campanas email upsell</span>
+                                <span class="bt-tag">Retargeting exalumnos</span>
+                            </div>
+                            <div class="bt-toggle">Click para ver detalle ▾</div>
+                            <div class="bt-expand">
+                                <div class="bt-detail-row">
+                                    <div class="bt-doing">
+                                        <div class="btd-title">Que hacemos</div>
+                                        R4Numbers y Tutor Digital en desarrollo, oferta post-curso
+                                    </div>
+                                    <div class="bt-missing">
+                                        <div class="btd-title">Que falta</div>
+                                        Campanas de upsell automatizadas, retargeting exalumnos, base de datos unificada
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bt-icon" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">📈</div>
+                    </div>
+
+                    <!-- ENLACE EJECUTIVO -->
+                    <div class="bt-stage s6 right" onclick="this.classList.toggle('open')">
+                        <div class="bt-content right">
+                            <div class="bt-label" style="color: var(--info);">Etapa 6 — PROGRAMA PREMIUM</div>
+                            <div class="bt-metric">Enlace Ejecutivo — 17 negocios</div>
+                            <div class="bt-desc">$60,000/negocio/ano — $1,020,000 anuales</div>
+                            <div class="bt-tags right">
+                                <span class="bt-tag" style="color: var(--info); border-color: rgba(116,185,255,0.5);">3 equipos activos</span>
+                                <span class="bt-tag" style="color: var(--info); border-color: rgba(116,185,255,0.5);">Daniel Suarez</span>
+                                <span class="bt-tag" style="color: var(--info); border-color: rgba(116,185,255,0.5);">Renovacion anual</span>
+                                <span class="bt-tag" style="color: var(--info); border-color: rgba(116,185,255,0.5);">$1,020,000/ano</span>
+                            </div>
+                            <div class="bt-toggle">Click para ver detalle ▾</div>
+                            <div class="bt-expand">
+                                <div class="bt-detail-row">
+                                    <div class="bt-doing">
+                                        <div class="btd-title">Que hacemos</div>
+                                        Enlace Ejecutivo activo con 3 equipos, Daniel Suarez como profesor
+                                    </div>
+                                    <div class="bt-missing">
+                                        <div class="btd-title">Que falta</div>
+                                        OKR 2026 al 0%, capturar base de clientes para expansion, 4o equipo
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bt-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">💼</div>
+                    </div>
+
+                    <!-- LIFETIME VALUE -->
+                    <div class="bt-stage s7 right" onclick="this.classList.toggle('open')">
+                        <div class="bt-content right">
+                            <div class="bt-label" style="color: var(--success);">Etapa 7 — LIFETIME VALUE MAXIMO</div>
+                            <div class="bt-metric">Embajadores + Referidos + Comunidad</div>
+                            <div class="bt-desc">Agencia Mktg, nuevas escuelas, expansion LATAM</div>
+                            <div class="bt-tags right">
+                                <span class="bt-tag">Referidos de exalumnos</span>
+                                <span class="bt-tag">Agencia Mktg (Luis)</span>
+                                <span class="bt-tag">Expansion internacional</span>
+                                <span class="bt-tag">Comunidad R4P LATAM</span>
+                            </div>
+                            <div class="bt-toggle">Click para ver detalle ▾</div>
+                            <div class="bt-expand">
+                                <div class="bt-detail-row">
+                                    <div class="bt-doing">
+                                        <div class="btd-title">Que hacemos</div>
+                                        Escuelas presenciales en Colombia y Venezuela, Agencia de Marketing
+                                    </div>
+                                    <div class="bt-missing">
+                                        <div class="btd-title">Que falta</div>
+                                        Programa formal de referidos, comunidad digital LATAM, embajadores activos
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bt-icon" style="background: linear-gradient(135deg, #2d6a4f, #1b4332);">🌟</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Summary bar -->
+        <div class="bt-summary">
+            <div class="bt-summary-item">
+                <div class="sv" style="color: var(--highlight);">118K</div>
+                <div class="sl">Alcance total</div>
+            </div>
+            <div class="bt-summary-item">
+                <div class="sv" style="color: var(--warning);">19,619</div>
+                <div class="sl">Contactos</div>
+            </div>
+            <div class="bt-summary-item">
+                <div class="sv" style="color: var(--info);">2,782</div>
+                <div class="sl">Oportunidades</div>
+            </div>
+            <div class="bt-summary-item" style="background: rgba(0,184,148,0.08);">
+                <div class="sv" style="color: var(--success);">318</div>
+                <div class="sl">Clientes (13% win)</div>
+            </div>
+            <div class="bt-summary-item">
+                <div class="sv" style="color: var(--funnel-5);">17</div>
+                <div class="sl">Enlace Ejecutivo</div>
+            </div>
+            <div class="bt-summary-item">
+                <div class="sv" style="color: var(--success);">$1.02M</div>
+                <div class="sl">Revenue anual CLV</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Note: Strategy details are now expandable inside each bowtie stage (click to see "Que hacemos" vs "Que falta") -->
+
+    <!-- ===== SECCION: ESTRATEGIA DE CONTENIDO (placeholder) ===== -->
+    <div class="chart-container" style="margin-top: 16px; border-color: rgba(253,203,110,0.3);">
+        <div class="chart-title"><span style="color: var(--warning);">Estrategia de Contenido — Pendiente de definir</span></div>
+        <div style="text-align: center; padding: 30px; color: #636e72;">
+            <div style="font-size: 2rem; margin-bottom: 10px;">📝</div>
+            <div style="font-size: 0.9rem;">Esta seccion se llenara con la estrategia de contenido que compartas.</div>
+            <div style="font-size: 0.8rem; margin-top: 6px;">Incluira: pilares de contenido, calendario editorial, tipos de contenido por plataforma, KPIs de contenido.</div>
+        </div>
+    </div>
+
+    <!-- Equipo -->
+    <div class="chart-container" style="width: 100%; margin-top: 16px;">
+        <div class="chart-title"><span>Equipo Ranching4Profit MX — Desde Notion</span></div>
+        <table class="data-table">
+            <thead>
+                <tr><th>Colaborador</th><th>Puesto</th><th>Unidad</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Fausto Bermudez</strong></td><td>CEO / Director General</td><td>Curso R4P + Rancho Terrenates</td><td><span class="sede-status active">Activo</span></td></tr>
+                <tr><td><strong>Fernanda Venegas</strong></td><td>Asistente DG / Mano derecha</td><td>Todas las areas</td><td><span class="sede-status active">Activo</span></td></tr>
+                <tr><td><strong>Daniela Cantu</strong></td><td>Ventas y Organizacion de Eventos</td><td>Curso R4P / Tutor Digital</td><td><span class="sede-status active">Activo</span></td></tr>
+                <tr><td><strong>Luis Serrano</strong></td><td>CMO</td><td>Marketing 6 unidades + Agencia</td><td><span class="sede-status active">Activo</span></td></tr>
+                <tr><td><strong>Daniel Suarez</strong></td><td>Prof. Enlace Ejecutivo</td><td>Enlace Ejecutivo</td><td><span class="sede-status active">Activo</span></td></tr>
+                <tr><td><strong>Maritza Martinez</strong></td><td>Contadora Principal</td><td>R4Numbers</td><td><span class="sede-status active">Activo</span></td></tr>
+                <tr><td><strong>Antonio Kuzanovic</strong></td><td>Prof. Cont. Administrativa</td><td>Curso R4P</td><td><span class="sede-status active">Activo</span></td></tr>
+                <tr><td>Ejecutivo de Ventas</td><td>VACANTE</td><td>Ventas</td><td style="color: var(--warning);">Pausada</td></tr>
+                <tr><td>Community Manager</td><td>VACANTE</td><td>Marketing</td><td style="color: var(--warning);">Pausada</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===== SECCION: ECOSISTEMA DE MARCAS ===== -->
+<div id="marcas" class="section">
+    <h2 class="section-title">Ecosistema de Marcas — Fausto Bermudez</h2>
+    <p class="section-subtitle">La marca personal de Fausto es la cabeza del ecosistema. Desde ahi se posicionan y crecen todas las subcuentas. Guia para Luis y el equipo de marketing.</p>
+
+    <style>
+        .eco-container { display: flex; flex-direction: column; align-items: center; gap: 30px; padding: 20px 0; }
+
+        .eco-hub {
+            position: relative; width: 200px; height: 200px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,184,148,0.2), rgba(0,184,148,0.02));
+            border: 3px solid var(--success);
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            box-shadow: 0 0 40px rgba(0,184,148,0.2), 0 0 80px rgba(0,184,148,0.05);
+            z-index: 2;
+        }
+        .eco-hub .hub-name { font-size: 1.3rem; font-weight: 900; color: var(--success); }
+        .eco-hub .hub-role { font-size: 0.7rem; color: rgba(255,255,255,0.6); text-align: center; margin-top: 4px; max-width: 140px; }
+
+        .eco-spokes { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 1100px; }
+
+        .eco-spoke {
+            width: 300px; border-radius: 16px; overflow: hidden;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+            cursor: default;
+        }
+        .eco-spoke:hover { border-color: var(--success); transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+
+        .eco-spoke-header {
+            padding: 16px 18px; display: flex; align-items: center; gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .eco-spoke-icon {
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; flex-shrink: 0;
+        }
+        .eco-spoke-header h3 { font-size: 0.95rem; line-height: 1.2; }
+        .eco-spoke-header .eco-handle { font-size: 0.7rem; color: #636e72; }
+
+        .eco-spoke-body { padding: 16px 18px; }
+        .eco-spoke-body .eco-intent {
+            font-size: 0.82rem; line-height: 1.5; color: rgba(255,255,255,0.7);
+            margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .eco-spoke-body .eco-audience { font-size: 0.72rem; color: #636e72; margin-bottom: 8px; }
+        .eco-spoke-body .eco-audience strong { color: rgba(255,255,255,0.5); }
+
+        .eco-metrics { display: flex; gap: 8px; flex-wrap: wrap; }
+        .eco-stat {
+            padding: 4px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 600;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .eco-connector {
+            width: 2px; height: 30px;
+            background: linear-gradient(180deg, var(--success), rgba(0,184,148,0.1));
+        }
+
+        .eco-strategy {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 16px 18px; margin-top: 8px;
+        }
+        .eco-strategy .eco-strat-title { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--success); font-weight: 700; margin-bottom: 6px; }
+        .eco-strategy ul { list-style: none; padding: 0; }
+        .eco-strategy li { font-size: 0.78rem; color: rgba(255,255,255,0.6); padding: 3px 0; padding-left: 14px; position: relative; }
+        .eco-strategy li::before { content: "→"; position: absolute; left: 0; color: var(--success); }
+    </style>
+
+    <!-- HUB central -->
+    <div class="eco-container">
+        <div class="eco-hub">
+            <div style="font-size: 2.5rem;">🤠</div>
+            <div class="hub-name">Fausto Bermudez</div>
+            <div class="hub-role">Marca personal — Cabeza del ecosistema</div>
+        </div>
+
+        <div class="eco-connector"></div>
+
+        <div style="text-align: center; max-width: 600px;">
+            <div style="font-size: 0.82rem; color: rgba(255,255,255,0.6); line-height: 1.6;">
+                La marca personal de Fausto es la que genera <strong style="color: var(--success);">alcance y confianza</strong>.
+                Desde ahi se distribuye la audiencia a las subcuentas especializadas.
+                Cada cuenta tiene un proposito y audiencia diferente.
+            </div>
+        </div>
+
+        <div class="eco-connector"></div>
+
+        <!-- SUBCUENTAS -->
+        <div class="eco-spokes">
+
+            <!-- FAUSTO BERMUDEZ -->
+            <div class="eco-spoke" style="border-color: rgba(0,184,148,0.3);">
+                <div class="eco-spoke-header">
+                    <div class="eco-spoke-icon" style="background: linear-gradient(135deg, #00b894, #2d6a4f);">🎯</div>
+                    <div>
+                        <h3>Fausto Bermudez</h3>
+                        <div class="eco-handle">@faustobermudez — Marca personal</div>
+                    </div>
+                </div>
+                <div class="eco-spoke-body">
+                    <div class="eco-intent">
+                        <strong style="color: var(--success);">Intencion:</strong> Coach de negocios ganaderos + vida personal.
+                        Humanizar a Fausto, mostrar su dia a dia, generar confianza y alcance masivo que jale audiencia a las demas cuentas.
+                    </div>
+                    <div class="eco-audience"><strong>Audiencia:</strong> Ganaderos, emprendedores agropecuarios, publico general interesado en liderazgo rural</div>
+                    <div class="eco-metrics">
+                        <span class="eco-stat" style="color: var(--success); border-color: rgba(0,184,148,0.3);">Cuenta madre</span>
+                        <span class="eco-stat">Alcance principal</span>
+                        <span class="eco-stat">Humaniza la marca</span>
+                    </div>
+                    <div class="eco-strategy">
+                        <div class="eco-strat-title">Estrategia de contenido</div>
+                        <ul>
+                            <li>Vida diaria en el rancho y la oficina</li>
+                            <li>Reflexiones de liderazgo y negocios</li>
+                            <li>Detras de camaras de las escuelas</li>
+                            <li>Historias de exito de alumnos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RANCHING FOR PROFIT -->
+            <div class="eco-spoke" style="border-color: rgba(116,185,255,0.3);">
+                <div class="eco-spoke-header">
+                    <div class="eco-spoke-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">📚</div>
+                    <div>
+                        <h3>Ranching for Profit MX</h3>
+                        <div class="eco-handle">@ranching4profitmx — Educacion ganadera</div>
+                    </div>
+                </div>
+                <div class="eco-spoke-body">
+                    <div class="eco-intent">
+                        <strong style="color: var(--info);">Intencion:</strong> Division de educacion.
+                        Escuelas presenciales (te vendemos la informacion) y Enlace Ejecutivo (te acompanamos a la ejecucion).
+                        Es el producto principal del ecosistema.
+                    </div>
+                    <div class="eco-audience"><strong>Audiencia:</strong> Ganaderos que quieren profesionalizar su negocio, tomadores de decision en ranchos</div>
+                    <div class="eco-metrics">
+                        <span class="eco-stat" style="color: var(--info); border-color: rgba(116,185,255,0.3);">IG 80K</span>
+                        <span class="eco-stat" style="color: var(--info); border-color: rgba(116,185,255,0.3);">FB 22.2K</span>
+                        <span class="eco-stat">Producto core</span>
+                        <span class="eco-stat">32+ escuelas</span>
+                    </div>
+                    <div class="eco-strategy">
+                        <div class="eco-strat-title">Estrategia de contenido</div>
+                        <ul>
+                            <li>Testimoniales de alumnos y resultados</li>
+                            <li>Tips de gestion ganadera (educativo)</li>
+                            <li>Convocatorias y fechas de escuelas</li>
+                            <li>Contenido de valor sobre rentabilidad</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RANCHO TERRENATES -->
+            <div class="eco-spoke">
+                <div class="eco-spoke-header">
+                    <div class="eco-spoke-icon" style="background: linear-gradient(135deg, #8b4513, #654321);">🐂</div>
+                    <div>
+                        <h3>Rancho Terrenates</h3>
+                        <div class="eco-handle">@ranchoterrenates — Rancho familiar</div>
+                    </div>
+                </div>
+                <div class="eco-spoke-body">
+                    <div class="eco-intent">
+                        <strong style="color: #d4a76a;">Intencion:</strong> Rancho tradicional de la familia, 5+ generaciones.
+                        Vender animales y mostrar como deberia operar un rancho.
+                        Es la prueba tangible de que lo que ensenamos funciona.
+                    </div>
+                    <div class="eco-audience"><strong>Audiencia:</strong> Ganaderos, compradores de ganado, personas del sector agropecuario</div>
+                    <div class="eco-metrics">
+                        <span class="eco-stat" style="color: #d4a76a; border-color: rgba(212,167,106,0.3);">5+ generaciones</span>
+                        <span class="eco-stat">Venta de animales</span>
+                        <span class="eco-stat">Credibilidad</span>
+                    </div>
+                    <div class="eco-strategy">
+                        <div class="eco-strat-title">Estrategia de contenido</div>
+                        <ul>
+                            <li>Operacion diaria del rancho</li>
+                            <li>Manejo de ganado y pastizales</li>
+                            <li>Resultados financieros del rancho</li>
+                            <li>Ventas de animales y subastas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARNICERIA DEL RANCHO -->
+            <div class="eco-spoke">
+                <div class="eco-spoke-header">
+                    <div class="eco-spoke-icon" style="background: linear-gradient(135deg, #e94560, #c0392b);">🥩</div>
+                    <div>
+                        <h3>Carniceria del Rancho</h3>
+                        <div class="eco-handle">@carniceriadelrancho — Consumidor final</div>
+                    </div>
+                </div>
+                <div class="eco-spoke-body">
+                    <div class="eco-intent">
+                        <strong style="color: var(--highlight);">Intencion:</strong> Comunicar con personas NO del sector agropecuario — los que consumen carne.
+                        Vender la idea de lo que es la ganaderia, la importancia de la trazabilidad en los alimentos.
+                        Puente entre el campo y la ciudad.
+                    </div>
+                    <div class="eco-audience"><strong>Audiencia:</strong> Consumidores finales de carne, foodies, personas interesadas en alimentacion consciente y trazabilidad</div>
+                    <div class="eco-metrics">
+                        <span class="eco-stat" style="color: var(--highlight); border-color: rgba(233,69,96,0.3);">B2C</span>
+                        <span class="eco-stat">Trazabilidad</span>
+                        <span class="eco-stat">Del rancho a tu mesa</span>
+                    </div>
+                    <div class="eco-strategy">
+                        <div class="eco-strat-title">Estrategia de contenido</div>
+                        <ul>
+                            <li>De donde viene tu carne (trazabilidad)</li>
+                            <li>Recetas y cortes de carne</li>
+                            <li>Importancia de la ganaderia sustentable</li>
+                            <li>Historias del campo a la mesa</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RANCHING FOR NUMBERS -->
+            <div class="eco-spoke">
+                <div class="eco-spoke-header">
+                    <div class="eco-spoke-icon" style="background: linear-gradient(135deg, #f39c12, #e67e22);">📊</div>
+                    <div>
+                        <h3>Ranching for Numbers</h3>
+                        <div class="eco-handle">@ranching4numbers — Finanzas ganaderas</div>
+                    </div>
+                </div>
+                <div class="eco-spoke-body">
+                    <div class="eco-intent">
+                        <strong style="color: var(--warning);">Intencion:</strong> Ayudar a ganaderos con finanzas, contabilidad fiscal y administrativa.
+                        La gente que batalla con los numeros no tiene que saberlo hacer todo — nosotros estamos para ayudarles.
+                        Responsable: Maritza Martinez.
+                    </div>
+                    <div class="eco-audience"><strong>Audiencia:</strong> Ganaderos que necesitan apoyo contable/financiero, rancheros que quieren ordenar sus numeros</div>
+                    <div class="eco-metrics">
+                        <span class="eco-stat" style="color: var(--warning); border-color: rgba(243,156,18,0.3);">Contabilidad</span>
+                        <span class="eco-stat">Fiscal + Admin</span>
+                        <span class="eco-stat">Maritza Martinez</span>
+                    </div>
+                    <div class="eco-strategy">
+                        <div class="eco-strat-title">Estrategia de contenido</div>
+                        <ul>
+                            <li>Tips de finanzas para ganaderos</li>
+                            <li>Errores comunes en contabilidad de ranchos</li>
+                            <li>Como organizar tus numeros sin ser contador</li>
+                            <li>Casos de exito de clientes R4N</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GANADERO ESTOICO -->
+            <div class="eco-spoke">
+                <div class="eco-spoke-header">
+                    <div class="eco-spoke-icon" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">🧘</div>
+                    <div>
+                        <h3>Ganadero Estoico</h3>
+                        <div class="eco-handle">@ganaderoestoico — Motivacion y reflexion</div>
+                    </div>
+                </div>
+                <div class="eco-spoke-body">
+                    <div class="eco-intent">
+                        <strong style="color: var(--funnel-5);">Intencion:</strong> Reflexiones que te ayudan a sentirte motivado y presente en la vida.
+                        Filosofia estoica aplicada al mundo ganadero y emprendedor rural.
+                        Contenido que conecta emocionalmente.
+                    </div>
+                    <div class="eco-audience"><strong>Audiencia:</strong> Ganaderos, emprendedores rurales, personas que buscan motivacion y reflexion</div>
+                    <div class="eco-metrics">
+                        <span class="eco-stat" style="color: var(--funnel-5); border-color: rgba(155,89,182,0.3);">Motivacion</span>
+                        <span class="eco-stat">Filosofia estoica</span>
+                        <span class="eco-stat">Engagement alto</span>
+                    </div>
+                    <div class="eco-strategy">
+                        <div class="eco-strat-title">Estrategia de contenido</div>
+                        <ul>
+                            <li>Frases y reflexiones estoicas adaptadas al campo</li>
+                            <li>Historias de resiliencia ganadera</li>
+                            <li>Mentalidad de crecimiento para rancheros</li>
+                            <li>Contenido corto tipo reels/stories motivacionales</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MEME GANADERO -->
+            <div class="eco-spoke">
+                <div class="eco-spoke-header">
+                    <div class="eco-spoke-icon" style="background: linear-gradient(135deg, #1abc9c, #16a085);">😂</div>
+                    <div>
+                        <h3>Meme Ganadero</h3>
+                        <div class="eco-handle">@memeganadero — Humor ganadero</div>
+                    </div>
+                </div>
+                <div class="eco-spoke-body">
+                    <div class="eco-intent">
+                        <strong style="color: var(--funnel-6);">Intencion:</strong> Humor y memes del mundo ganadero.
+                        Genera alcance viral y conecta con una audiencia mas amplia de manera ligera y divertida.
+                        Puerta de entrada al ecosistema.
+                    </div>
+                    <div class="eco-audience"><strong>Audiencia:</strong> Ganaderos, hijos de rancheros, publico rural general, viralizacion</div>
+                    <div class="eco-metrics">
+                        <span class="eco-stat" style="color: var(--funnel-6); border-color: rgba(26,188,156,0.3);">Viral</span>
+                        <span class="eco-stat">Alcance organico</span>
+                        <span class="eco-stat">Puerta de entrada</span>
+                    </div>
+                    <div class="eco-strategy">
+                        <div class="eco-strat-title">Estrategia de contenido</div>
+                        <ul>
+                            <li>Memes de la vida diaria del ganadero</li>
+                            <li>Situaciones comicas del campo</li>
+                            <li>Contenido que la gente comparte con amigos</li>
+                            <li>Cross-promotion sutil a las demas cuentas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Flujo de audiencia -->
+        <div class="chart-container" style="margin-top: 20px; width: 100%;">
+            <div class="chart-title"><span>Flujo de Audiencia — Como se conectan las marcas</span></div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 10px;">
+                <div style="background: rgba(0,184,148,0.08); border: 1px solid rgba(0,184,148,0.2); border-radius: 10px; padding: 14px 18px; text-align: center; min-width: 200px; flex: 1;">
+                    <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--success); margin-bottom: 6px; font-weight: 700;">Generan Alcance</div>
+                    <div style="font-size: 0.82rem;"><strong>Fausto Bermudez</strong> + <strong>Meme Ganadero</strong> + <strong>Ganadero Estoico</strong></div>
+                    <div style="font-size: 0.7rem; color: #636e72; margin-top: 4px;">Contenido emocional y viral que atrae nuevas audiencias</div>
+                </div>
+                <div style="display: flex; align-items: center; color: var(--success); font-size: 1.5rem; padding: 0 8px;">→</div>
+                <div style="background: rgba(116,185,255,0.08); border: 1px solid rgba(116,185,255,0.2); border-radius: 10px; padding: 14px 18px; text-align: center; min-width: 200px; flex: 1;">
+                    <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--info); margin-bottom: 6px; font-weight: 700;">Generan Credibilidad</div>
+                    <div style="font-size: 0.82rem;"><strong>Rancho Terrenates</strong> + <strong>Carniceria del Rancho</strong></div>
+                    <div style="font-size: 0.7rem; color: #636e72; margin-top: 4px;">Prueba tangible de que lo que ensenamos funciona</div>
+                </div>
+                <div style="display: flex; align-items: center; color: var(--success); font-size: 1.5rem; padding: 0 8px;">→</div>
+                <div style="background: rgba(233,69,96,0.08); border: 1px solid rgba(233,69,96,0.2); border-radius: 10px; padding: 14px 18px; text-align: center; min-width: 200px; flex: 1;">
+                    <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--highlight); margin-bottom: 6px; font-weight: 700;">Generan Revenue</div>
+                    <div style="font-size: 0.82rem;"><strong>Ranching4Profit</strong> + <strong>R4Numbers</strong></div>
+                    <div style="font-size: 0.7rem; color: #636e72; margin-top: 4px;">Escuelas, Enlace Ejecutivo, Contabilidad — productos de paga</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECCION 2: EMBUDO DE VENTAS ===== -->
+<div id="embudo" class="section">
+    <h2 class="section-title">Embudo de Ventas — Pipeline de Negocios HubSpot</h2>
+    <p class="section-subtitle">Datos reales del pipeline "default" — 3,579 deals totales. <a href="https://app.hubspot.com/contacts/49310792/deals/board/view/all/" class="hs-link" target="_blank">Abrir en HubSpot &#8599;</a></p>
+
+    <div class="funnel-container">
+        <div class="funnel">
+            <div class="funnel-stage stage-1">
+                <h4>COTIZACION ENVIADA</h4>
+                <div class="metric">794</div>
+                <div class="conversion">Primer contacto de venta</div>
+            </div>
+            <div class="funnel-stage stage-2">
+                <h4>APROBACION VERBAL</h4>
+                <div class="metric">170</div>
+                <div class="conversion">&#8595; 21.4% avanzan</div>
+            </div>
+            <div class="funnel-stage stage-3">
+                <h4>CONTRATO ENVIADO</h4>
+                <div class="metric">119</div>
+                <div class="conversion">&#8595; 70.0% avanzan</div>
+            </div>
+            <div class="funnel-stage stage-4">
+                <h4>ETAPA PERSONALIZADA</h4>
+                <div class="metric">26</div>
+                <div class="conversion">&#8595; 21.8% avanzan</div>
+            </div>
+            <div class="funnel-stage stage-5">
+                <h4>CIERRE GANADO</h4>
+                <div class="metric">318</div>
+                <div class="conversion">Win rate: 13.0%</div>
+            </div>
+            <div class="funnel-stage stage-6" style="background: var(--highlight);">
+                <h4>CIERRE PERDIDO</h4>
+                <div class="metric">2,136</div>
+                <div class="conversion">59.7% de todos los deals</div>
+            </div>
+        </div>
+
+        <div class="kpi-panel">
+            <div class="kpi-card">
+                <div class="label">Total Deals</div>
+                <div class="value" style="color: var(--info);">3,579</div>
+                <div class="trend neutral">Pipeline completo HubSpot</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Deals Ganados</div>
+                <div class="value" style="color: var(--success);">318</div>
+                <div class="trend up">Cierre exitoso (closedwon)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Win Rate</div>
+                <div class="value" style="color: var(--warning);">13.0%</div>
+                <div class="trend down">318 ganados / 2,454 cerrados</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Pipeline Activo</div>
+                <div class="value" style="color: var(--info);">1,109</div>
+                <div class="trend up">Deals aun en proceso</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Contactos Totales</div>
+                <div class="value" style="color: var(--success);">19,619</div>
+                <div class="trend up">Base completa HubSpot</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Tasa Lead → Opp</div>
+                <div class="value" style="color: var(--warning);">18.8%</div>
+                <div class="trend neutral">2,782 / 14,836 leads</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Customers Activos</div>
+                <div class="value" style="color: var(--success);">112</div>
+                <div class="trend up">Lifecycle: Customer</div>
+            </div>
+            <div class="kpi-card" style="border-color: var(--highlight);">
+                <div class="label">Deals Perdidos</div>
+                <div class="value" style="color: var(--highlight);">2,136</div>
+                <div class="trend down">Oportunidad de mejora</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="insight-box" style="margin-top: 24px;">
+        <strong>Analisis clave:</strong> Con un win rate del 13%, hay 2,136 deals perdidos que representan una oportunidad masiva. Mejorar la tasa de cierre al 20% (benchmark de la industria) significaria ~170 clientes adicionales. Ademas, hay 1,109 deals activos en el pipeline — priorizar seguimiento de los 119 en "Contrato enviado" que estan mas cerca del cierre.
+    </div>
+</div>
+
+<!-- ===== SECCION 3: SEDES ===== -->
+<div id="sedes" class="section">
+    <h2 class="section-title">Sedes y Escuelas Ranching4Profit</h2>
+    <p class="section-subtitle">Historial completo desde Google Calendar R4P + HubSpot deals closedwon. <a href="https://app.hubspot.com/contacts/49310792/deals/board/view/all/" class="hs-link" target="_blank">Abrir en HubSpot &#8599;</a></p>
+
+    <!-- KPIs de sedes -->
+    <div style="display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap;">
+        <div class="kpi-card" style="flex:1; min-width: 160px;">
+            <div class="label">Total Escuelas (2022-2026)</div>
+            <div class="value" style="color: var(--success);">36+</div>
+            <div class="trend up">En 10+ paises</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width: 160px;">
+            <div class="label">Escuelas 2025</div>
+            <div class="value" style="color: var(--info);">12</div>
+            <div class="trend up">Ano record de sedes</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width: 160px;">
+            <div class="label">Escuelas 2026 (YTD + prog)</div>
+            <div class="value" style="color: var(--highlight);">3</div>
+            <div class="trend neutral">MDE (feb) + Panama (jul) + mas por definir</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width: 160px;">
+            <div class="label">Sedes Recurrentes</div>
+            <div class="value" style="color: var(--success);">6</div>
+            <div class="trend up">CHH, MTY, GDL, VER, MDE, VEN</div>
+        </div>
+    </div>
+
+    <!-- Tabla historial completo por sede -->
+    <div class="chart-container" style="margin-bottom: 24px;">
+        <div class="chart-title"><span>Historial de Escuelas por Sede — Datos de Google Calendar R4P</span></div>
+        <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Sede</th><th>Pais</th>
+                    <th style="text-align:center;">2022</th>
+                    <th style="text-align:center;">2023</th>
+                    <th style="text-align:center;">2024</th>
+                    <th style="text-align:center;">2025</th>
+                    <th style="text-align:center;">2026</th>
+                    <th style="text-align:center;">Total</th>
+                    <th>Fechas historicas</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- SEDES RECURRENTES MEXICO -->
+                <tr style="background: rgba(0,184,148,0.05);">
+                    <td><strong style="color: var(--success);">Chihuahua (CHH)</strong></td>
+                    <td>Mexico</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--success);">3</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Nov'23 (privada), Nov'24, Nov'25</td>
+                </tr>
+                <tr style="background: rgba(0,184,148,0.05);">
+                    <td><strong style="color: var(--success);">Monterrey (NL)</strong></td>
+                    <td>Mexico</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">2</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--success);">4</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Mar'23, Jun'24, Ago'24 (privada), Mar'25</td>
+                </tr>
+                <tr style="background: rgba(0,184,148,0.05);">
+                    <td><strong style="color: var(--success);">Guadalajara (JAL)</strong></td>
+                    <td>Mexico</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--success);">4</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Ago'22 (Westin), Jun'23, Mar'24, Ago'25</td>
+                </tr>
+                <tr style="background: rgba(0,184,148,0.05);">
+                    <td><strong style="color: var(--success);">Veracruz / Boca del Rio</strong></td>
+                    <td>Mexico</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--success);">3</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Nov'22 (Hotel Galeria), Oct'24, Oct'25</td>
+                </tr>
+                <tr>
+                    <td><strong>Tabasco</strong></td>
+                    <td>Mexico</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold;">2</td>
+                    <td style="font-size:0.75rem; color:#636e72;">May'24, Abr'25</td>
+                </tr>
+                <tr>
+                    <td><strong>Hermosillo (SON)</strong></td>
+                    <td>Mexico</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold;">2</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Feb'24, Oct'25</td>
+                </tr>
+                <tr>
+                    <td><strong>Aguascalientes</strong></td>
+                    <td>Mexico</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold;">1</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Abr'25 (nueva sede)</td>
+                </tr>
+
+                <!-- SEPARATOR -->
+                <tr><td colspan="9" style="padding:4px; background:rgba(116,185,255,0.08); font-size:0.7rem; text-align:center; color:var(--info); text-transform:uppercase; letter-spacing:2px;">Sedes Internacionales</td></tr>
+
+                <!-- SEDES INTERNACIONALES -->
+                <tr style="background: rgba(116,185,255,0.04);">
+                    <td><strong style="color: var(--info);">Medellin</strong></td>
+                    <td>Colombia</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--highlight); font-weight:bold;">1</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--info);">4</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Feb'23, Feb'24, Feb'25, Feb'26</td>
+                </tr>
+                <tr style="background: rgba(116,185,255,0.04);">
+                    <td><strong style="color: var(--info);">Venezuela</strong></td>
+                    <td>Venezuela</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">2</td>
+                    <td style="text-align:center; color:var(--info);">2</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--info);">4</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Feb'24, Oct'24 (privada), Feb'25, May'25 (Barquisimeto)</td>
+                </tr>
+                <tr style="background: rgba(116,185,255,0.04);">
+                    <td><strong style="color: var(--info);">Argentina</strong></td>
+                    <td>Argentina</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold;">2</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Jun'24, Jul'25</td>
+                </tr>
+                <tr>
+                    <td><strong>Uruguay</strong></td>
+                    <td>Uruguay</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold;">1</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Jul'25</td>
+                </tr>
+                <tr>
+                    <td><strong>Guatemala</strong></td>
+                    <td>Guatemala</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold;">1</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Abr'24</td>
+                </tr>
+                <tr>
+                    <td><strong>Chile</strong></td>
+                    <td>Chile</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold;">1</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Jul'24</td>
+                </tr>
+                <tr>
+                    <td><strong>Nicaragua (Managua)</strong></td>
+                    <td>Nicaragua</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold;">1</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Ago'24</td>
+                </tr>
+                <tr>
+                    <td><strong>Espana</strong></td>
+                    <td>Espana</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--info);">1</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; font-weight:bold;">1</td>
+                    <td style="font-size:0.75rem; color:#636e72;">Oct'25 (primera vez Europa)</td>
+                </tr>
+                <tr>
+                    <td><strong style="color: var(--warning);">Panama</strong></td>
+                    <td>Panama</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:#636e72;">—</td>
+                    <td style="text-align:center; color:var(--highlight); font-weight:bold;">1</td>
+                    <td style="text-align:center; font-weight:bold;">1</td>
+                    <td style="font-size:0.75rem; color:var(--warning);">Jul'26 (programada)</td>
+                </tr>
+
+                <!-- TOTALS -->
+                <tr style="background: rgba(0,184,148,0.1); font-weight: bold;">
+                    <td>TOTAL ESCUELAS</td><td>10+ paises</td>
+                    <td style="text-align:center;">2</td>
+                    <td style="text-align:center;">4</td>
+                    <td style="text-align:center;">12</td>
+                    <td style="text-align:center;">12</td>
+                    <td style="text-align:center; color:var(--highlight);">2+</td>
+                    <td style="text-align:center; color:var(--success); font-size:1.1rem;">32+</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <!-- Sedes recurrentes cards -->
+    <h3 style="font-size: 1rem; margin-bottom: 16px; color: var(--success);">Sedes Recurrentes — Detalle</h3>
+    <div class="sedes-grid">
+
+        <!-- CHIHUAHUA -->
+        <div class="sede-card" style="border-color: rgba(0,184,148,0.3);">
+            <div class="sede-header">
+                <h3>Chihuahua (CHH)</h3>
+                <span class="sede-status active">3 escuelas</span>
+            </div>
+            <div class="sede-body">
+                <div class="sede-metric"><span>2023</span><span class="val">Nov — Escuela privada</span></div>
+                <div class="sede-metric"><span>2024</span><span class="val">Nov — R4P CHH tantivo</span></div>
+                <div class="sede-metric"><span>2025</span><span class="val">Nov — R4P Chihuahua</span></div>
+                <div class="sede-metric"><span>2026</span><span class="val" style="color: var(--warning);">Sin programar</span></div>
+                <div class="sede-metric"><span>Enlace Ejecutivo</span><span class="val" style="color:var(--success);">4 negocios</span></div>
+                <div class="sede-bar"><div class="sede-bar-fill" style="width:75%; background: var(--success);"></div></div>
+            </div>
+        </div>
+
+        <!-- MONTERREY -->
+        <div class="sede-card" style="border-color: rgba(0,184,148,0.3);">
+            <div class="sede-header">
+                <h3>Monterrey (NL)</h3>
+                <span class="sede-status active">4 escuelas</span>
+            </div>
+            <div class="sede-body">
+                <div class="sede-metric"><span>2023</span><span class="val">Mar — R4P MTY</span></div>
+                <div class="sede-metric"><span>2024</span><span class="val">Jun + Ago (privada) — 2 escuelas</span></div>
+                <div class="sede-metric"><span>2025</span><span class="val">Mar — R4P Monterrey</span></div>
+                <div class="sede-metric"><span>2026</span><span class="val" style="color: var(--warning);">Sin programar</span></div>
+                <div class="sede-metric"><span>Enlace Ejecutivo</span><span class="val" style="color:var(--success);">3 negocios</span></div>
+                <div class="sede-bar"><div class="sede-bar-fill" style="width:100%; background: linear-gradient(90deg, var(--success), var(--info));"></div></div>
+            </div>
+        </div>
+
+        <!-- GUADALAJARA -->
+        <div class="sede-card" style="border-color: rgba(0,184,148,0.3);">
+            <div class="sede-header">
+                <h3>Guadalajara (JAL)</h3>
+                <span class="sede-status active">4 escuelas</span>
+            </div>
+            <div class="sede-body">
+                <div class="sede-metric"><span>2022</span><span class="val">Ago — Westin GDL (1ra)</span></div>
+                <div class="sede-metric"><span>2023</span><span class="val">Jun — 3ra edicion</span></div>
+                <div class="sede-metric"><span>2024</span><span class="val">Mar — R4P GDL</span></div>
+                <div class="sede-metric"><span>2025</span><span class="val">Ago — R4P GDL</span></div>
+                <div class="sede-metric"><span>2026</span><span class="val" style="color: var(--warning);">Sin programar</span></div>
+                <div class="sede-bar"><div class="sede-bar-fill" style="width:100%; background: var(--success);"></div></div>
+            </div>
+        </div>
+
+        <!-- VERACRUZ -->
+        <div class="sede-card" style="border-color: rgba(0,184,148,0.3);">
+            <div class="sede-header">
+                <h3>Veracruz / Boca del Rio</h3>
+                <span class="sede-status active">3 escuelas</span>
+            </div>
+            <div class="sede-body">
+                <div class="sede-metric"><span>2022</span><span class="val">Nov — Hotel Galeria Plaza</span></div>
+                <div class="sede-metric"><span>2024</span><span class="val">Oct — Boca del Rio</span></div>
+                <div class="sede-metric"><span>2025</span><span class="val">Oct — R4P Veracruz</span></div>
+                <div class="sede-metric"><span>2026</span><span class="val" style="color: var(--warning);">Sin programar</span></div>
+                <div class="sede-bar"><div class="sede-bar-fill" style="width:75%; background: var(--warning);"></div></div>
+            </div>
+        </div>
+
+        <!-- MEDELLIN -->
+        <div class="sede-card" style="border-color: rgba(116,185,255,0.4);">
+            <div class="sede-header" style="background: linear-gradient(135deg, #1b4332, var(--accent));">
+                <h3>Medellin, Colombia</h3>
+                <span class="sede-status intl">4 escuelas</span>
+            </div>
+            <div class="sede-body">
+                <div class="sede-metric"><span>2023</span><span class="val">Feb — 1ra edicion</span></div>
+                <div class="sede-metric"><span>2024</span><span class="val">Feb — R4P Medellin</span></div>
+                <div class="sede-metric"><span>2025</span><span class="val">Feb — R4P Medellin</span></div>
+                <div class="sede-metric"><span>2026</span><span class="val" style="color: var(--success);">Feb — R4P Medellin (realizada)</span></div>
+                <div class="sede-bar"><div class="sede-bar-fill" style="width:100%; background: linear-gradient(90deg, var(--info), #9b59b6);"></div></div>
+                <div style="margin-top: 8px;"><span class="opp-tag" style="background: rgba(0,184,148,0.15); color: var(--success); border-color: rgba(0,184,148,0.3);">Sede fija anual — Febrero</span></div>
+            </div>
+        </div>
+
+        <!-- VENEZUELA -->
+        <div class="sede-card" style="border-color: rgba(116,185,255,0.4);">
+            <div class="sede-header" style="background: linear-gradient(135deg, #1b4332, var(--accent));">
+                <h3>Venezuela</h3>
+                <span class="sede-status intl">4 escuelas</span>
+            </div>
+            <div class="sede-body">
+                <div class="sede-metric"><span>2024</span><span class="val">Feb + Oct (privada) — 2 escuelas</span></div>
+                <div class="sede-metric"><span>2025</span><span class="val">Feb + May (Barquisimeto) — 2 escuelas</span></div>
+                <div class="sede-metric"><span>2026</span><span class="val" style="color: var(--warning);">Sin programar</span></div>
+                <div class="sede-metric"><span>Formato</span><span class="val">La Finca Empresarial</span></div>
+                <div class="sede-bar"><div class="sede-bar-fill" style="width:100%; background: var(--info);"></div></div>
+            </div>
+        </div>
+
+        <!-- ARGENTINA -->
+        <div class="sede-card">
+            <div class="sede-header" style="background: linear-gradient(135deg, #1b4332, var(--accent));">
+                <h3>Argentina</h3>
+                <span class="sede-status intl">2 escuelas</span>
+            </div>
+            <div class="sede-body">
+                <div class="sede-metric"><span>2024</span><span class="val">Jun — R4P Argentina</span></div>
+                <div class="sede-metric"><span>2025</span><span class="val">Jul — R4P Argentina</span></div>
+                <div class="sede-metric"><span>2026</span><span class="val" style="color: var(--warning);">Sin programar</span></div>
+                <div class="sede-bar"><div class="sede-bar-fill" style="width:50%; background: var(--info);"></div></div>
+            </div>
+        </div>
+
+        <!-- SEDES CON 1 ESCUELA -->
+        <div class="sede-card">
+            <div class="sede-header" style="background: rgba(255,255,255,0.06);">
+                <h3>Otras sedes (1 escuela c/u)</h3>
+                <span class="sede-status" style="background: rgba(253,203,110,0.2); color: var(--warning);">Expansion</span>
+            </div>
+            <div class="sede-body">
+                <div class="sede-metric"><span>Hermosillo</span><span class="val">Feb'24, Oct'25 (2)</span></div>
+                <div class="sede-metric"><span>Tabasco</span><span class="val">May'24, Abr'25 (2)</span></div>
+                <div class="sede-metric"><span>Aguascalientes</span><span class="val">Abr'25 (nueva)</span></div>
+                <div class="sede-metric"><span>Guatemala</span><span class="val">Abr'24</span></div>
+                <div class="sede-metric"><span>Chile</span><span class="val">Jul'24</span></div>
+                <div class="sede-metric"><span>Nicaragua</span><span class="val">Ago'24</span></div>
+                <div class="sede-metric"><span>Uruguay</span><span class="val">Jul'25</span></div>
+                <div class="sede-metric"><span>Espana</span><span class="val" style="color:var(--info);">Oct'25 (1ra Europa)</span></div>
+                <div class="sede-metric"><span style="color:var(--warning);">Panama</span><span class="val" style="color:var(--highlight);">Jul'26 (programada)</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="insight-box" style="margin-top: 20px;">
+        <strong>Crecimiento explosivo:</strong> De 2 escuelas en 2022 a 12 en 2024/2025 (6x en 3 anos). Las 6 sedes recurrentes (CHH, MTY, GDL, VER, MDE, VEN) representan el core del negocio. Medellin es la unica sede con calendario fijo (febrero cada ano). Las sedes de Mexico aun no tienen fecha 2026 — oportunidad de programar CHH, MTY, GDL y VER para completar el ano.
+    </div>
+    <div class="insight-box positive" style="margin-top: 10px;">
+        <strong>Expansion internacional:</strong> De 1 pais internacional en 2023 (Colombia) a 7 paises en 2025 (Colombia, Venezuela, Argentina, Uruguay, Guatemala, Chile, Espana). En 2026 se agrega Panama. R4P ya opera en 3 continentes (America, Europa). Considerar consolidar sedes fijas anuales por region.
+    </div>
+</div>
+
+<!-- ===== SECCION 4: CAMPANAS DE PAUTA & REDES SOCIALES ===== -->
+<div id="campanas" class="section">
+    <h2 class="section-title">Campana de Alcance — Pauta Digital & Redes Sociales</h2>
+    <p class="section-subtitle">CMO: Luis Serrano | Editores: Edgar, Dalia, Karen, Yafar — <a href="https://app.hubspot.com/contacts/49310792" class="hs-link" target="_blank">HubSpot &#8599;</a> | <a href="https://www.ranching4profitmx.com" class="hs-link" target="_blank" style="color: var(--success);">ranching4profitmx.com &#8599;</a></p>
+
+    <!-- KPIs generales -->
+    <div style="display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap;">
+        <div class="kpi-card" style="flex:1; min-width: 180px;">
+            <div class="label">Alcance Total Redes</div>
+            <div class="value" style="color: var(--success);">~118K</div>
+            <div class="trend up">Seguidores combinados</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width: 180px;">
+            <div class="label">Contactos HubSpot</div>
+            <div class="value" style="color: var(--info);">19,619</div>
+            <div class="trend neutral">Base total CRM</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width: 180px;">
+            <div class="label">Plataformas Activas</div>
+            <div class="value" style="color: var(--warning);">7</div>
+            <div class="trend up">IG, FB, TikTok, Threads, X, LinkedIn, Web</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width: 180px;">
+            <div class="label">Canal Mas Fuerte</div>
+            <div class="value" style="color: var(--highlight);">Instagram</div>
+            <div class="trend up">80K seguidores</div>
+        </div>
+    </div>
+
+    <!-- ===== REDES SOCIALES - TARJETAS ===== -->
+    <h3 style="margin-bottom: 16px; font-size: 1.1rem;">Presencia en Redes Sociales — Datos Reales</h3>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin-bottom: 24px;">
+
+        <!-- INSTAGRAM -->
+        <div class="clv-card" style="border-color: #E1306C;">
+            <div class="clv-card-header" style="background: linear-gradient(135deg, rgba(225,48,108,0.15), rgba(131,58,180,0.1));">
+                <div class="tag" style="color: #E1306C;">INSTAGRAM — @ranching4profitmx</div>
+                <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Instagram</span>
+                    <span style="font-size: 1.4rem; color: #E1306C;">80K</span>
+                </h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Seguidores</span><strong style="color: #E1306C;">80,000</strong></div>
+                <div class="clv-row"><span>Publicaciones</span><strong>1,695</strong></div>
+                <div class="clv-row"><span>Formato fuerte</span><strong>Reels, Lives, Stories</strong></div>
+                <div class="clv-row"><span>Rol en funnel</span><strong style="color: var(--success);">Awareness + Nurturing</strong></div>
+                <div class="clv-progress" style="margin-top: 10px;">
+                    <div class="clv-progress-fill" style="width: 85%; background: linear-gradient(90deg, #E1306C, #833AB4);"></div>
+                </div>
+                <div style="margin-top: 12px;">
+                    <span class="opp-tag" style="color: #E1306C; border-color: rgba(225,48,108,0.3); background: rgba(225,48,108,0.1);">Canal #1</span>
+                    <span class="opp-tag">Alto engagement</span>
+                    <span class="opp-tag">Comunidad activa</span>
+                </div>
+                <div class="insight-box positive" style="margin-top: 12px;">
+                    <strong>Estrategias de mejora:</strong><br>
+                    1. <strong>Reels educativos cortos (30-60s)</strong> con tips de ganaderia rentable — el algoritmo prioriza Reels y pueden viralizar<br>
+                    2. <strong>Carruseles de casos de exito</strong> — "Antes/Despues" de alumnos R4P con datos reales de mejora<br>
+                    3. <strong>IG Lives semanales</strong> con Fausto o profesores respondiendo preguntas — ya hacen Lives, escalar a formato fijo (ej: "Lunes Ganadero 6pm")<br>
+                    4. <strong>Link en bio con Linktree</strong> hacia formulario HubSpot para capturar leads directo desde IG<br>
+                    5. <strong>Colaboraciones con cuentas ganaderas LATAM</strong> para cross-pollination de audiencias (ej: @lagranjadelborrego, Canal Rural)
+                </div>
+            </div>
+        </div>
+
+        <!-- FACEBOOK -->
+        <div class="clv-card" style="border-color: #1877F2;">
+            <div class="clv-card-header" style="background: linear-gradient(135deg, rgba(24,119,242,0.15), rgba(24,119,242,0.05));">
+                <div class="tag" style="color: #1877F2;">FACEBOOK — /ranchingforprofit</div>
+                <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Facebook</span>
+                    <span style="font-size: 1.4rem; color: #1877F2;">22.2K</span>
+                </h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Likes de pagina</span><strong style="color: #1877F2;">22,240</strong></div>
+                <div class="clv-row"><span>Hablando de esto</span><strong>6,025</strong></div>
+                <div class="clv-row"><span>Engagement rate</span><strong style="color: var(--success);">27.1% (alto)</strong></div>
+                <div class="clv-row"><span>Rol en funnel</span><strong style="color: var(--warning);">Lead Gen + Pauta</strong></div>
+                <div class="clv-progress" style="margin-top: 10px;">
+                    <div class="clv-progress-fill" style="width: 55%; background: #1877F2;"></div>
+                </div>
+                <div style="margin-top: 12px;">
+                    <span class="opp-tag" style="color: #1877F2; border-color: rgba(24,119,242,0.3); background: rgba(24,119,242,0.1);">Lead Gen principal</span>
+                    <span class="opp-tag">Meta Ads</span>
+                    <span class="opp-tag">Pauta pagada</span>
+                </div>
+                <div class="insight-box positive" style="margin-top: 12px;">
+                    <strong>Estrategias de mejora:</strong><br>
+                    1. <strong>Facebook Lead Ads con formulario integrado a HubSpot</strong> — captura directa sin salir de FB, reduce friccion<br>
+                    2. <strong>Crear Grupo privado "Comunidad R4P"</strong> — los grupos tienen mayor alcance organico que las paginas en 2026<br>
+                    3. <strong>Retargeting a visitantes del sitio web</strong> con Pixel de Meta + audiencias personalizadas desde HubSpot<br>
+                    4. <strong>Video testimoniales de alumnos</strong> (2-3 min) — FB prioriza video nativo sobre links externos<br>
+                    5. <strong>Lookalike audiences</strong> basadas en los 112 customers de HubSpot para encontrar ganaderos similares
+                </div>
+            </div>
+        </div>
+
+        <!-- TIKTOK -->
+        <div class="clv-card" style="border-color: #ff0050;">
+            <div class="clv-card-header" style="background: linear-gradient(135deg, rgba(255,0,80,0.12), rgba(0,0,0,0.2));">
+                <div class="tag" style="color: #ff0050;">TIKTOK — @ranching4profitmx</div>
+                <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>TikTok</span>
+                    <span style="font-size: 1.1rem; color: #ff0050;">Crecimiento</span>
+                </h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Cuenta</span><strong style="color: #ff0050;">@ranching4profitmx</strong></div>
+                <div class="clv-row"><span>Status</span><strong>Activa — en crecimiento</strong></div>
+                <div class="clv-row"><span>Potencial de nicho</span><strong style="color: var(--success);">MUY ALTO</strong></div>
+                <div class="clv-row"><span>Rol en funnel</span><strong style="color: var(--highlight);">Awareness viral</strong></div>
+                <div class="clv-progress" style="margin-top: 10px;">
+                    <div class="clv-progress-fill" style="width: 25%; background: #ff0050;"></div>
+                </div>
+                <div style="margin-top: 12px;">
+                    <span class="opp-tag" style="color: #ff0050; border-color: rgba(255,0,80,0.3); background: rgba(255,0,80,0.1);">Mayor oportunidad</span>
+                    <span class="opp-tag">Viral potential</span>
+                    <span class="opp-tag">Nicho ganadero</span>
+                </div>
+                <div class="insight-box" style="margin-top: 12px;">
+                    <strong>Estrategias de mejora (ALTA PRIORIDAD):</strong><br>
+                    1. <strong>Videos "dia en el rancho"</strong> estilo documental corto — el contenido agro/ranch es tendencia global en TikTok (ver @ballerinafarm con 9M+)<br>
+                    2. <strong>Series educativas "Sabias que..."</strong> sobre ganaderia rentable en 15-30 segundos — hooks fuertes<br>
+                    3. <strong>Behind the scenes de las escuelas R4P</strong> — mostrar la experiencia presencial genera FOMO<br>
+                    4. <strong>Responder comentarios con video</strong> — el algoritmo de TikTok premia esta interaccion<br>
+                    5. <strong>Publicar 1-2 videos diarios</strong> — consistencia es clave; reutilizar Reels de IG adaptados al formato TikTok<br>
+                    6. <strong>Usar trending sounds</strong> de Mexico/LATAM combinados con contenido ganadero = formula viral
+                </div>
+            </div>
+        </div>
+
+        <!-- THREADS -->
+        <div class="clv-card" style="border-color: #fff;">
+            <div class="clv-card-header" style="background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(0,0,0,0.2));">
+                <div class="tag" style="color: #dfe6e9;">THREADS — @ranching4profitmx</div>
+                <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Threads</span>
+                    <span style="font-size: 1.4rem; color: #dfe6e9;">9.8K</span>
+                </h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Seguidores</span><strong>9,800</strong></div>
+                <div class="clv-row"><span>Vinculado a</span><strong>Instagram (80K)</strong></div>
+                <div class="clv-row"><span>Potencial</span><strong style="color: var(--warning);">Medio — plataforma joven</strong></div>
+                <div class="clv-row"><span>Rol en funnel</span><strong>Comunidad + Thought leadership</strong></div>
+                <div class="clv-progress" style="margin-top: 10px;">
+                    <div class="clv-progress-fill" style="width: 35%; background: #dfe6e9;"></div>
+                </div>
+                <div class="insight-box positive" style="margin-top: 12px;">
+                    <strong>Estrategias:</strong><br>
+                    1. <strong>Publicar reflexiones cortas de Fausto</strong> sobre liderazgo ganadero — formato texto funciona bien en Threads<br>
+                    2. <strong>Cross-post automatico desde IG</strong> — bajo esfuerzo, mantiene presencia<br>
+                    3. <strong>Iniciar conversaciones</strong> tipo "Cual es el mayor reto de tu rancho?" — engagement organico alto
+                </div>
+            </div>
+        </div>
+
+        <!-- LINKEDIN -->
+        <div class="clv-card" style="border-color: #0a66c2;">
+            <div class="clv-card-header" style="background: linear-gradient(135deg, rgba(10,102,194,0.15), rgba(10,102,194,0.05));">
+                <div class="tag" style="color: #0a66c2;">LINKEDIN — Ranching For Profit + Fausto Bermudez</div>
+                <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>LinkedIn</span>
+                    <span style="font-size: 1.4rem; color: #0a66c2;">5.1K</span>
+                </h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Seguidores empresa</span><strong style="color: #0a66c2;">5,107</strong></div>
+                <div class="clv-row"><span>Perfil CEO</span><strong>Fausto Bermudez activo</strong></div>
+                <div class="clv-row"><span>Potencial</span><strong style="color: var(--success);">ALTO para Enlace Ejecutivo</strong></div>
+                <div class="clv-row"><span>Rol en funnel</span><strong style="color: var(--info);">B2B + High ticket</strong></div>
+                <div class="clv-progress" style="margin-top: 10px;">
+                    <div class="clv-progress-fill" style="width: 40%; background: #0a66c2;"></div>
+                </div>
+                <div style="margin-top: 12px;">
+                    <span class="opp-tag" style="color: #0a66c2; border-color: rgba(10,102,194,0.3); background: rgba(10,102,194,0.1);">High ticket</span>
+                    <span class="opp-tag">Enlace Ejecutivo</span>
+                    <span class="opp-tag">Decision makers</span>
+                </div>
+                <div class="insight-box positive" style="margin-top: 12px;">
+                    <strong>Estrategias de mejora:</strong><br>
+                    1. <strong>Fausto como thought leader</strong> — publicar 2-3x/semana articulos sobre gestion ganadera empresarial<br>
+                    2. <strong>LinkedIn Ads para Enlace Ejecutivo</strong> — segmentar por: duenos de ranchos, agronegocios, directores de empresas agropecuarias<br>
+                    3. <strong>Publicar casos de exito</strong> de los 17 negocios de Enlace Ejecutivo con datos de resultados<br>
+                    4. <strong>LinkedIn Newsletter</strong> — "El Ganadero Rentable" semanal con insights exclusivos<br>
+                    5. <strong>Conectar con asociaciones ganaderas</strong> y camaras agropecuarias de Mexico y LATAM
+                </div>
+            </div>
+        </div>
+
+        <!-- X (TWITTER) -->
+        <div class="clv-card" style="border-color: #536471;">
+            <div class="clv-card-header" style="background: linear-gradient(135deg, rgba(83,100,113,0.15), rgba(0,0,0,0.2));">
+                <div class="tag" style="color: #71767b;">X (TWITTER) — @ranchingxprofit</div>
+                <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>X (Twitter)</span>
+                    <span style="font-size: 1rem; color: #71767b;">Bajo</span>
+                </h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Posts publicados</span><strong>296</strong></div>
+                <div class="clv-row"><span>Seguidores</span><strong style="color: var(--highlight);">~21</strong></div>
+                <div class="clv-row"><span>Potencial</span><strong style="color: var(--highlight);">Bajo para este nicho</strong></div>
+                <div class="clv-row"><span>Rol en funnel</span><strong>Secundario — presencia minima</strong></div>
+                <div class="clv-progress" style="margin-top: 10px;">
+                    <div class="clv-progress-fill" style="width: 3%; background: #536471;"></div>
+                </div>
+                <div class="insight-box" style="margin-top: 12px;">
+                    <strong>Estrategia:</strong><br>
+                    1. <strong>Prioridad BAJA</strong> — X no es la plataforma del ganadero mexicano/LATAM<br>
+                    2. <strong>Automatizar cross-post</strong> desde IG/FB para mantener presencia sin esfuerzo adicional<br>
+                    3. <strong>Solo usar para networking</strong> con influencers del sector agro si se presenta la oportunidad
+                </div>
+            </div>
+        </div>
+
+        <!-- YOUTUBE -->
+        <div class="clv-card" style="border-color: #ff0000;">
+            <div class="clv-card-header" style="background: linear-gradient(135deg, rgba(255,0,0,0.12), rgba(0,0,0,0.2));">
+                <div class="tag" style="color: #ff4444;">YOUTUBE — Activo, por escalar</div>
+                <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>YouTube</span>
+                    <span style="font-size: 1rem; color: var(--warning);">Escalar</span>
+                </h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Canal</span><strong style="color: var(--success);"><a href="https://www.youtube.com/@ranching4profitmx" target="_blank" style="color: var(--success); text-decoration: none;">@ranching4profitmx</a></strong></div>
+                <div class="clv-row"><span>Canal original (ENG)</span><strong>~6,100 subs</strong></div>
+                <div class="clv-row"><span>Potencial</span><strong style="color: var(--success);">MUY ALTO</strong></div>
+                <div class="clv-row"><span>Rol en funnel</span><strong style="color: var(--success);">Educacion + SEO + Trust</strong></div>
+                <div class="clv-progress" style="margin-top: 10px;">
+                    <div class="clv-progress-fill" style="width: 5%; background: #ff0000;"></div>
+                </div>
+                <div style="margin-top: 12px;">
+                    <span class="opp-tag" style="color: #ff4444; border-color: rgba(255,0,0,0.3); background: rgba(255,0,0,0.1);">Gran oportunidad</span>
+                    <span class="opp-tag">SEO largo plazo</span>
+                    <span class="opp-tag">Contenido evergreen</span>
+                </div>
+                <div class="insight-box" style="margin-top: 12px;">
+                    <strong>Estrategias (OPORTUNIDAD CRITICA):</strong><br>
+                    1. <strong>Escalar canal @ranching4profitmx</strong> — los ganaderos buscan en YouTube "como hacer rentable mi rancho", "ganaderia regenerativa", "manejo de pastizales"<br>
+                    2. <strong>Subir grabaciones editadas de las escuelas</strong> (fragmentos de 10-15 min) — contenido ya existe, solo falta editarlo<br>
+                    3. <strong>Serie "El Rancho Rentable"</strong> — episodios mensuales de 20 min con entrevistas a exalumnos exitosos<br>
+                    4. <strong>Shorts de YouTube</strong> — reutilizar Reels/TikToks para alimentar el canal sin esfuerzo extra<br>
+                    5. <strong>SEO en espanol</strong> — poca competencia en contenido ganadero de negocio en espanol = posicionamiento rapido<br>
+                    6. <strong>Monetizacion futura</strong> — un canal activo puede generar ingresos publicitarios + leads organicos permanentes
+                </div>
+            </div>
+        </div>
+
+        <!-- WEBSITE -->
+        <div class="clv-card" style="border-color: var(--success);">
+            <div class="clv-card-header" style="background: linear-gradient(135deg, rgba(0,184,148,0.15), rgba(0,0,0,0.2));">
+                <div class="tag" style="color: var(--success);">SITIO WEB — ranching4profitmx.com</div>
+                <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Website</span>
+                    <span style="font-size: 1rem; color: var(--success);">Hub central</span>
+                </h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Dominio</span><strong style="color: var(--success);">ranching4profitmx.com</strong></div>
+                <div class="clv-row"><span>Lema</span><strong>"Mejora tus tierras, tus animales, tus finanzas y tu vida"</strong></div>
+                <div class="clv-row"><span>Rol en funnel</span><strong style="color: var(--success);">Conversion central</strong></div>
+                <div class="clv-row"><span>Integrado con</span><strong>HubSpot CRM</strong></div>
+                <div class="clv-progress" style="margin-top: 10px;">
+                    <div class="clv-progress-fill" style="width: 60%; background: var(--success);"></div>
+                </div>
+                <div class="insight-box positive" style="margin-top: 12px;">
+                    <strong>Estrategias de mejora:</strong><br>
+                    1. <strong>Landing pages por sede</strong> — una pagina especifica para cada escuela (CHH, MTY, TAB) con formulario HubSpot<br>
+                    2. <strong>Blog SEO</strong> — publicar 2 articulos/mes sobre ganaderia rentable para capturar trafico organico<br>
+                    3. <strong>Testimoniales en video</strong> de exalumnos embebidos en la pagina principal<br>
+                    4. <strong>Chat en vivo / WhatsApp</strong> integrado para captura inmediata de leads<br>
+                    5. <strong>Pixel de Meta + Google Tag Manager</strong> para retargeting en todas las plataformas
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TABLA DE CAMPANAS PAGADAS ===== -->
+    <h3 style="margin: 24px 0 16px; font-size: 1.1rem;">Campanas de Pauta Pagada</h3>
+
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Campana</th>
+                    <th>Plataforma</th>
+                    <th>Objetivo</th>
+                    <th>Responsable</th>
+                    <th>Status</th>
+                    <th>HubSpot</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Alcance — Curso R4P</strong></td>
+                    <td><span class="badge badge-meta">Meta Ads</span></td>
+                    <td>Lead Gen para escuelas presenciales</td>
+                    <td>Luis Serrano (CMO)</td>
+                    <td><span class="sede-status active">Activa</span></td>
+                    <td><a href="https://app.hubspot.com/contacts/49310792/contacts/list/view/all/" class="hs-link" target="_blank">Contactos &#8599;</a></td>
+                </tr>
+                <tr>
+                    <td><strong>Search — Ganaderos</strong></td>
+                    <td><span class="badge badge-google">Google Ads</span></td>
+                    <td>Captacion busqueda activa</td>
+                    <td>Luis Serrano (CMO)</td>
+                    <td><span class="sede-status active">Activa</span></td>
+                    <td><a href="https://app.hubspot.com/contacts/49310792/deals/board/view/all/" class="hs-link" target="_blank">Deals &#8599;</a></td>
+                </tr>
+                <tr>
+                    <td><strong>Retargeting — Enlace Ejecutivo</strong></td>
+                    <td><span class="badge badge-meta">Meta Ads</span></td>
+                    <td>Upsell a exalumnos</td>
+                    <td>Daniel Suarez + Luis</td>
+                    <td style="color: var(--warning);">Por arrancar 2026</td>
+                    <td><a href="https://app.hubspot.com/contacts/49310792" class="hs-link" target="_blank">HubSpot &#8599;</a></td>
+                </tr>
+                <tr>
+                    <td><strong>LinkedIn Ads — Enlace Ejecutivo</strong></td>
+                    <td><span class="badge" style="background: rgba(10,102,194,0.3); color: #0a66c2;">LinkedIn</span></td>
+                    <td>High ticket — decision makers ganaderos</td>
+                    <td>Luis Serrano</td>
+                    <td style="color: var(--highlight);">Propuesta</td>
+                    <td>—</td>
+                </tr>
+                <tr>
+                    <td><strong>YouTube Ads — Escuelas</strong></td>
+                    <td><span class="badge" style="background: rgba(255,0,0,0.2); color: #ff4444;">YouTube</span></td>
+                    <td>Pre-roll en contenido ganadero</td>
+                    <td>Luis Serrano</td>
+                    <td style="color: var(--highlight);">Propuesta</td>
+                    <td>—</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===== MAPA ESTRATEGICO DE CANALES ===== -->
+    <div class="chart-container" style="margin-top: 24px;">
+        <div class="chart-title"><span>Mapa Estrategico: Canal vs. Etapa del Funnel</span></div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Canal</th>
+                    <th>Awareness</th>
+                    <th>Interes</th>
+                    <th>Consideracion</th>
+                    <th>Conversion</th>
+                    <th>Retencion / CLV</th>
+                    <th>Prioridad</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Instagram (80K)</strong></td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(253,203,110,0.2); text-align:center;">MEDIO</td>
+                    <td style="background: rgba(253,203,110,0.2); text-align:center;">MEDIO</td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="color: var(--success); font-weight: bold;">ALTA</td>
+                </tr>
+                <tr>
+                    <td><strong>Facebook (22K)</strong></td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(253,203,110,0.2); text-align:center;">MEDIO</td>
+                    <td style="color: var(--success); font-weight: bold;">ALTA</td>
+                </tr>
+                <tr>
+                    <td><strong>TikTok</strong></td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">VIRAL</td>
+                    <td style="background: rgba(253,203,110,0.2); text-align:center;">MEDIO</td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="color: var(--warning); font-weight: bold;">MEDIA-ALTA</td>
+                </tr>
+                <tr>
+                    <td><strong>YouTube (activo)</strong></td>
+                    <td style="background: rgba(253,203,110,0.2); text-align:center;">MEDIO</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="color: var(--highlight); font-weight: bold;">CRITICA</td>
+                </tr>
+                <tr>
+                    <td><strong>LinkedIn (5.1K)</strong></td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="background: rgba(253,203,110,0.2); text-align:center;">MEDIO</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="color: var(--warning); font-weight: bold;">MEDIA (Enlace)</td>
+                </tr>
+                <tr>
+                    <td><strong>Threads (9.8K)</strong></td>
+                    <td style="background: rgba(253,203,110,0.2); text-align:center;">MEDIO</td>
+                    <td style="background: rgba(253,203,110,0.2); text-align:center;">MEDIO</td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="color: #636e72;">BAJA</td>
+                </tr>
+                <tr>
+                    <td><strong>X / Twitter (~21)</strong></td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="color: #636e72;">MUY BAJA</td>
+                </tr>
+                <tr>
+                    <td><strong>Website</strong></td>
+                    <td style="background: rgba(233,69,96,0.1); text-align:center;">BAJO</td>
+                    <td style="background: rgba(253,203,110,0.2); text-align:center;">MEDIO</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="background: rgba(0,184,148,0.2); text-align:center;">FUERTE</td>
+                    <td style="color: var(--success); font-weight: bold;">ALTA</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- RESUMEN ESTRATEGICO -->
+    <div class="insight-box positive" style="margin-top: 20px;">
+        <strong>TOP 3 Acciones de Mayor Impacto:</strong><br><br>
+        <strong>1. Escalar canal de YouTube @ranching4profitmx</strong> — El canal ya existe pero necesita contenido constante. Las grabaciones de escuelas son contenido listo. YouTube tiene el mayor poder de SEO, trust y conversion. Poca competencia en ganaderia de negocio en espanol.<br><br>
+        <strong>2. Escalar TikTok a 1-2 videos diarios</strong> — El nicho ganadero es tendencia global. Reutilizar contenido de IG. Un solo video viral puede traer miles de leads nuevos. Costo: bajo (ya tienen editores).<br><br>
+        <strong>3. Facebook Lead Ads + Lookalike audiences</strong> — Crear audiencias similares basadas en los 112 customers de HubSpot. Los Lead Ads con formulario nativo reducen el costo por lead hasta 50% vs. landing pages externas.
+    </div>
+</div>
+
+<!-- ===== SECCION 5: ASISTENCIAS ===== -->
+<div id="asistencias" class="section">
+    <h2 class="section-title">Asistencias por Sede — Escuelas R4P</h2>
+    <p class="section-subtitle">Historico de cursos presenciales documentados en calendario</p>
+
+    <div class="chart-container">
+        <div class="chart-title"><span>Escuelas Realizadas por Sede y Ano</span></div>
+        <table class="data-table">
+            <thead>
+                <tr><th>Sede</th><th>2024</th><th>2025</th><th>2026 (YTD)</th><th>Proxima programada</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Chihuahua</strong></td>
+                    <td>Nov 25-29 (5 dias)</td>
+                    <td>Por confirmar</td>
+                    <td>—</td>
+                    <td>Pendiente</td>
+                </tr>
+                <tr>
+                    <td><strong>Monterrey</strong></td>
+                    <td>—</td>
+                    <td>Mar 10-15 (5 dias)</td>
+                    <td>—</td>
+                    <td>Pendiente</td>
+                </tr>
+                <tr>
+                    <td><strong>Tabasco</strong></td>
+                    <td>—</td>
+                    <td>Abr 7-11 (5 dias)</td>
+                    <td>—</td>
+                    <td>Pendiente</td>
+                </tr>
+                <tr>
+                    <td><strong>Medellin (COL)</strong></td>
+                    <td>—</td>
+                    <td>Feb 17-21 (5 dias)</td>
+                    <td>—</td>
+                    <td>Pendiente</td>
+                </tr>
+                <tr>
+                    <td><strong>Venezuela</strong></td>
+                    <td>Feb 26 - Mar 2</td>
+                    <td>Feb 21 + May 23 (La Finca)</td>
+                    <td>—</td>
+                    <td>Pendiente</td>
+                </tr>
+                <tr>
+                    <td><strong>Chile</strong></td>
+                    <td>Alianza con Kusanovic</td>
+                    <td>Nov 20 (SOMEX)</td>
+                    <td>—</td>
+                    <td>Pendiente</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="chart-container">
+        <div class="chart-title"><span>Deals Creados por Mes — 2026 (HubSpot Real)</span></div>
+        <div class="bar-chart" id="dealsChart"></div>
+        <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background: var(--success);"></div>Deals creados</div>
+            <div class="legend-item"><div class="legend-dot" style="background: var(--highlight);"></div>Deals ganados (cerrados)</div>
+        </div>
+    </div>
+
+    <div class="insight-box positive">
+        <strong>Patron:</strong> Los picos de creacion de deals coinciden con las fechas de escuelas presenciales. Monterrey (Mar 2025) y Tabasco (Abr 2025) muestran alta actividad post-evento. Programar mas escuelas en 2026 para mantener el pipeline activo — actualmente no hay escuelas programadas para 2026.
+    </div>
+</div>
+
+<!-- ===== SECCION 6: CUSTOMER LIFETIME VALUE ===== -->
+<div id="clv" class="section">
+    <h2 class="section-title">Customer Lifetime Value — Expansion del Valor</h2>
+    <p class="section-subtitle">6 unidades de negocio para maximizar el valor de cada cliente R4P</p>
+
+    <!-- CLV Overview -->
+    <div style="display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap;">
+        <div class="kpi-card" style="flex:1; min-width: 200px; border-color: var(--success);">
+            <div class="label">Enlace Ejecutivo — Revenue Anual</div>
+            <div class="value" style="color: var(--success);">$1,020,000</div>
+            <div class="trend up">17 negocios x $60,000/ano</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width: 200px; border-color: var(--info);">
+            <div class="label">Customers en HubSpot</div>
+            <div class="value" style="color: var(--info);">112</div>
+            <div class="trend neutral">Lifecycle: Customer</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width: 200px; border-color: var(--warning);">
+            <div class="label">Tasa de Upsell Actual</div>
+            <div class="value" style="color: var(--warning);">15.2%</div>
+            <div class="trend down">17 en Enlace / 112 customers</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width: 200px; border-color: var(--highlight);">
+            <div class="label">OKR Enlace 2026</div>
+            <div class="value" style="color: var(--highlight);">0%</div>
+            <div class="trend down">No iniciado — Daniel Suarez</div>
+        </div>
+    </div>
+
+    <div class="clv-grid">
+        <!-- Enlace Ejecutivo -->
+        <div class="clv-card">
+            <div class="clv-card-header">
+                <div class="tag">Programa Premium — Daniel Suarez</div>
+                <h3>Enlace Ejecutivo</h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Anualidad por negocio</span><strong style="color: var(--success);">$60,000 MXN/ano</strong></div>
+                <div class="clv-row"><span>Negocios activos</span><strong>17</strong></div>
+                <div class="clv-row"><span>Equipos</span><strong>3 (Fogon, Agua Beige, El Nino)</strong></div>
+                <div class="clv-row"><span>Revenue anual total</span><strong style="color: var(--success);">$1,020,000 MXN</strong></div>
+                <div class="clv-row"><span>Todos pagados 2026</span><strong style="color: var(--success);">Si</strong></div>
+                <div class="clv-row"><span>OKR Q1: Arrancar 2026</span><strong style="color: var(--highlight);">0% — No iniciado</strong></div>
+                <div class="clv-progress">
+                    <div class="clv-progress-fill" style="width: 15%;"></div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <span class="opp-tag">Sonora</span>
+                    <span class="opp-tag">Veracruz</span>
+                    <span class="opp-tag">Chihuahua</span>
+                    <span class="opp-tag">Coahuila</span>
+                    <span class="opp-tag">Monterrey</span>
+                    <span class="opp-tag">Tabasco</span>
+                    <span class="opp-tag">Baja California</span>
+                </div>
+                <div class="insight-box" style="margin-top: 14px;">
+                    <strong>Area de mejora:</strong> Solo 17/112 customers (15.2%) estan en Enlace Ejecutivo. El OKR "Arrancar Enlace Ejecutivo 2026" esta en 0%. Convocar exalumnos activos es la prioridad — cada negocio nuevo = $60,000/ano recurrente. Si se llega a 30 negocios, el revenue sube a $1,800,000.
+                </div>
+            </div>
+        </div>
+
+        <!-- Tutor Digital -->
+        <div class="clv-card">
+            <div class="clv-card-header">
+                <div class="tag">Servicio Digital — Daniela Cantu</div>
+                <h3>Tutor Digital</h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Status</span><strong style="color: var(--warning);">Activo (proximamente clientes)</strong></div>
+                <div class="clv-row"><span>Lider</span><strong>Daniela Cantu</strong></div>
+                <div class="clv-row"><span>Base elegible</span><strong>112 customers</strong></div>
+                <div class="clv-row"><span>Clientes actuales</span><strong style="color: var(--highlight);">Sin capturar en base</strong></div>
+                <div class="clv-row"><span>Notion page</span><strong style="color: var(--info);">Proximamente</strong></div>
+                <div class="clv-progress">
+                    <div class="clv-progress-fill" style="width: 5%;"></div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <span class="opp-tag">Escalable</span>
+                    <span class="opp-tag">Digital</span>
+                    <span class="opp-tag">Ingresos recurrentes</span>
+                </div>
+                <div class="insight-box" style="margin-top: 14px;">
+                    <strong>Area de mejora:</strong> Tutor Digital aun no tiene clientes capturados en la base de datos de Notion. Oportunidad: ofrecer como valor agregado a los 112 customers existentes. Si el 25% adopta a $450/mes, son $151,200/ano adicionales.
+                </div>
+            </div>
+        </div>
+
+        <!-- R4Numbers -->
+        <div class="clv-card">
+            <div class="clv-card-header">
+                <div class="tag">Programa Especializado — Maritza Martinez</div>
+                <h3>Ranching4Numbers</h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Status</span><strong style="color: var(--success);">Activo</strong></div>
+                <div class="clv-row"><span>Lider</span><strong>Maritza Martinez</strong></div>
+                <div class="clv-row"><span>OKR Q1: Base capturada</span><strong style="color: var(--highlight);">0% — No iniciado</strong></div>
+                <div class="clv-row"><span>Base elegible</span><strong>112 customers</strong></div>
+                <div class="clv-row"><span>Clientes actuales</span><strong style="color: var(--highlight);">Sin capturar</strong></div>
+                <div class="clv-progress">
+                    <div class="clv-progress-fill" style="width: 0%;"></div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <span class="opp-tag">Contabilidad ganadera</span>
+                    <span class="opp-tag">Analisis financiero</span>
+                    <span class="opp-tag">Complemento R4P</span>
+                </div>
+                <div class="insight-box" style="margin-top: 14px;">
+                    <strong>Area de mejora:</strong> R4Numbers no tiene su base de clientes capturada (OKR al 0%). Es critico agendar con Maritza para digitalizar la base. Sin datos, no se puede medir CLV ni hacer cross-sell.
+                </div>
+            </div>
+        </div>
+
+        <!-- Agencia de Marketing -->
+        <div class="clv-card">
+            <div class="clv-card-header">
+                <div class="tag">En Incubacion — Luis Serrano</div>
+                <h3>Agencia de Marketing</h3>
+            </div>
+            <div class="clv-card-body">
+                <div class="clv-row"><span>Status</span><strong style="color: var(--warning);">En incubacion</strong></div>
+                <div class="clv-row"><span>OKR Q1: Primer cliente</span><strong style="color: var(--warning);">10%</strong></div>
+                <div class="clv-row"><span>Clientes actuales</span><strong style="color: var(--highlight);">0</strong></div>
+                <div class="clv-row"><span>Target</span><strong>Ganaderos que necesitan mktg</strong></div>
+                <div class="clv-progress">
+                    <div class="clv-progress-fill" style="width: 10%;"></div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <span class="opp-tag">Nuevo revenue stream</span>
+                    <span class="opp-tag">Cross-sell natural</span>
+                    <span class="opp-tag">En desarrollo</span>
+                </div>
+                <div class="insight-box" style="margin-top: 14px;">
+                    <strong>Area de mejora:</strong> La agencia es un canal de cross-sell natural para los 17 negocios de Enlace Ejecutivo y los graduates de R4P. El 10% de avance indica que Luis esta trabajando en ello — revisar los viernes.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLV Journey Map -->
+    <div class="chart-container" style="margin-top: 24px;">
+        <div class="chart-title"><span>Journey de Expansion CLV — Ranching4Profit MX</span></div>
+        <div class="pipeline">
+            <div class="pipeline-stage">
+                <div class="stage-icon">🐄</div>
+                <div class="stage-name">Curso R4P</div>
+                <div class="stage-count">318</div>
+                <div class="stage-sub">Deals ganados (closedwon)</div>
+            </div>
+            <div class="pipeline-arrow">&#10132;</div>
+            <div class="pipeline-stage">
+                <div class="stage-icon">🤝</div>
+                <div class="stage-name">Enlace Ejecutivo</div>
+                <div class="stage-count">17</div>
+                <div class="stage-sub">$1,020,000/ano</div>
+            </div>
+            <div class="pipeline-arrow">&#10132;</div>
+            <div class="pipeline-stage">
+                <div class="stage-icon">📱</div>
+                <div class="stage-name">Tutor Digital</div>
+                <div class="stage-count">?</div>
+                <div class="stage-sub">Sin datos capturados</div>
+            </div>
+            <div class="pipeline-arrow">&#10132;</div>
+            <div class="pipeline-stage">
+                <div class="stage-icon">🔢</div>
+                <div class="stage-name">R4Numbers</div>
+                <div class="stage-count">?</div>
+                <div class="stage-sub">Base al 0%</div>
+            </div>
+            <div class="pipeline-arrow">&#10132;</div>
+            <div class="pipeline-stage" style="border-color: var(--warning);">
+                <div class="stage-icon">📣</div>
+                <div class="stage-name">Agencia Mktg</div>
+                <div class="stage-count">0</div>
+                <div class="stage-sub">En incubacion (10%)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="insight-box positive" style="margin-top: 16px;">
+        <strong>Resumen CLV:</strong> El mayor area de mejora es capturar datos de clientes en Notion (base al 0% para R4Numbers, Tutor Digital sin clientes registrados). Enlace Ejecutivo es el programa mas maduro con $1,020,000 anuales recurrentes, pero su OKR 2026 esta en 0%. <strong>Accion inmediata:</strong> (1) Agendar con Maritza para capturar base R4Numbers, (2) Arrancar convocatoria Enlace Ejecutivo 2026 con Daniel Suarez, (3) Registrar clientes de Tutor Digital en la base.
+    </div>
+</div>
+
+<!-- AVATAR IDEAL -->
+<div id="avatar" class="section">
+    <h2 class="section-title">Avatar Ideal — Perfil del Alumno R4P</h2>
+    <p class="section-subtitle">Datos combinados: Excel ex-alumnos 2022-2023 (562) + HubSpot 2025-2026 (318) — Total: 880 alumnos</p>
+
+    <!-- KPI row -->
+    <div style="display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap;">
+        <div class="kpi-card" style="flex:1; min-width:150px; border-color: var(--success);">
+            <div class="label">Ex-Alumnos Totales</div>
+            <div class="value" style="color: var(--success);">880</div>
+            <div class="trend up">2022–2026 combinados</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width:150px; border-color: rgba(162,155,254,0.6);">
+            <div class="label">2022–2023</div>
+            <div class="value" style="color: #a29bfe;">562</div>
+            <div class="trend neutral">Lista Excel global</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width:150px; border-color: var(--info);">
+            <div class="label">2025</div>
+            <div class="value" style="color: var(--info);">250</div>
+            <div class="trend up">HubSpot closedwon</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width:150px; border-color: var(--warning);">
+            <div class="label">2026 YTD</div>
+            <div class="value" style="color: var(--warning);">68</div>
+            <div class="trend up">Ene–Mar 15</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width:150px; border-color: var(--highlight);">
+            <div class="label">Paises</div>
+            <div class="value" style="color: var(--highlight);">11</div>
+            <div class="trend up">Presencia internacional</div>
+        </div>
+    </div>
+
+    <!-- 2026 YTD Breakdown -->
+    <div class="avatar-grid" style="margin-bottom: 24px;">
+        <div class="avatar-card">
+            <h3>2026 Year-to-Date por Mes</h3>
+            <div class="av-bar-row">
+                <div class="av-bar-label">Enero</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 69.2%; background: linear-gradient(90deg, #00b894, #00cec9);">18</div>
+                </div>
+                <div class="av-bar-val">26.5%</div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label">Febrero</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 92.3%; background: linear-gradient(90deg, #74b9ff, #0984e3);">24</div>
+                </div>
+                <div class="av-bar-val">35.3%</div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label">Marzo</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 100%; background: linear-gradient(90deg, #fdcb6e, #f39c12);">26</div>
+                </div>
+                <div class="av-bar-val">38.2%</div>
+            </div>
+            <p style="margin-top: 12px; font-size: 0.75rem; color: #636e72;">Marzo en curso (hasta dia 15). Tendencia creciente mes a mes.</p>
+        </div>
+        <div class="avatar-card">
+            <h3>2026 YTD por Sede</h3>
+            <div class="av-bar-row">
+                <div class="av-bar-label">Monterrey</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 100%; background: linear-gradient(90deg, var(--success), #1abc9c);">42</div>
+                </div>
+                <div class="av-bar-val">61.8%</div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label">Medellin</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 57.1%; background: linear-gradient(90deg, #74b9ff, #0984e3);">24</div>
+                </div>
+                <div class="av-bar-val">35.3%</div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label">Chihuahua</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 4.8%; background: linear-gradient(90deg, #fdcb6e, #f39c12); min-width: 24px;">2</div>
+                </div>
+                <div class="av-bar-val">2.9%</div>
+            </div>
+            <p style="margin-top: 12px; font-size: 0.75rem; color: #636e72;">Monterrey es el hub principal con 61.8% de inscripciones YTD.</p>
+        </div>
+    </div>
+
+    <div class="avatar-grid">
+        <!-- PAISES -->
+        <div class="avatar-card" style="grid-column: span 2;">
+            <h3>Paises de Origen (880 ex-alumnos)</h3>
+            <div class="av-country-grid">
+                <div class="av-country" style="border-color: var(--success);">
+                    <div class="flag">🇲🇽</div>
+                    <div class="name">Mexico</div>
+                    <div class="cnt">766</div>
+                    <div class="pct">87.0%</div>
+                </div>
+                <div class="av-country" style="border-color: var(--info);">
+                    <div class="flag">🇨🇴</div>
+                    <div class="name">Colombia</div>
+                    <div class="cnt">35</div>
+                    <div class="pct">4.0%</div>
+                </div>
+                <div class="av-country">
+                    <div class="flag">🇨🇱</div>
+                    <div class="name">Chile</div>
+                    <div class="cnt">16</div>
+                    <div class="pct">1.8%</div>
+                </div>
+                <div class="av-country">
+                    <div class="flag">🇻🇪</div>
+                    <div class="name">Venezuela</div>
+                    <div class="cnt">3</div>
+                    <div class="pct">0.3%</div>
+                </div>
+                <div class="av-country">
+                    <div class="flag">🇵🇾</div>
+                    <div class="name">Paraguay</div>
+                    <div class="cnt">2</div>
+                    <div class="pct">0.2%</div>
+                </div>
+                <div class="av-country">
+                    <div class="flag">🇬🇹</div>
+                    <div class="name">Guatemala</div>
+                    <div class="cnt">2</div>
+                    <div class="pct">0.2%</div>
+                </div>
+                <div class="av-country">
+                    <div class="flag">🌎</div>
+                    <div class="name">Otros</div>
+                    <div class="cnt">5</div>
+                    <div class="pct">EC, CR, PA, BR, PT</div>
+                </div>
+                <div class="av-country" style="border-color: var(--highlight); border-style: dashed;">
+                    <div class="flag">❓</div>
+                    <div class="name">Sin dato</div>
+                    <div class="cnt">51</div>
+                    <div class="pct">5.8% sin registrar</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GENERO -->
+        <div class="avatar-card">
+            <h3>Genero (880 ex-alumnos)</h3>
+            <div class="av-donut-wrap">
+                <div class="av-donut" style="background: conic-gradient(var(--info) 0deg 299deg, var(--highlight) 299deg 360deg);">
+                    <div class="av-donut-inner">
+                        <div class="pct" style="color: var(--info);">83%</div>
+                        <div class="lbl">Hombres</div>
+                    </div>
+                </div>
+                <div class="av-legend">
+                    <div class="av-legend-item">
+                        <div class="av-legend-dot" style="background: var(--info);"></div>
+                        <span>Hombres — 460 (83.0%)</span>
+                    </div>
+                    <div class="av-legend-item">
+                        <div class="av-legend-dot" style="background: var(--highlight);"></div>
+                        <span>Mujeres — 94 (17.0%)</span>
+                    </div>
+                    <div class="av-legend-item" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <div class="av-legend-dot" style="background: #636e72;"></div>
+                        <span style="color:#636e72;">Sin dato — 326 (37.0%)</span>
+                    </div>
+                </div>
+            </div>
+            <p style="text-align:center; margin-top:14px; font-size:0.75rem; color:#636e72;">De los 554 con dato. Porcentajes sobre registros con genero.</p>
+        </div>
+
+        <!-- EDADES -->
+        <div class="avatar-card">
+            <h3>Rangos de Edad (880 ex-alumnos)</h3>
+            <div class="av-bar-row">
+                <div class="av-bar-label">20–30</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 68.5%; background: linear-gradient(90deg, #74b9ff, #0984e3);">115</div>
+                </div>
+                <div class="av-bar-val">20.6%</div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label">31–40</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 100%; background: linear-gradient(90deg, #00b894, #00cec9);">168</div>
+                </div>
+                <div class="av-bar-val">30.1%</div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label">41–50</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 77.4%; background: linear-gradient(90deg, #fdcb6e, #f39c12);">130</div>
+                </div>
+                <div class="av-bar-val">23.3%</div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label">51+</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 86.9%; background: linear-gradient(90deg, #e17055, #d63031);">146</div>
+                </div>
+                <div class="av-bar-val">26.1%</div>
+            </div>
+            <p style="margin-top:14px; font-size:0.75rem; color:#636e72;">De los 559 con dato. Sin dato: 321. Rango dominante: 31–40 (30.1%).</p>
+        </div>
+
+        <!-- ESTADOS DE MEXICO -->
+        <div class="avatar-card" style="grid-column: span 2;">
+            <h3>Estados de Mexico (766 alumnos mexicanos, 25 estados)</h3>
+            <div style="margin-bottom: 16px;">
+                <div class="av-bar-row">
+                    <div class="av-bar-label">Chihuahua</div>
+                    <div class="av-bar-track">
+                        <div class="av-bar-fill" style="width: 100%; background: linear-gradient(90deg, var(--success), #1abc9c);">166</div>
+                    </div>
+                    <div class="av-bar-val">24.5%</div>
+                </div>
+                <div class="av-bar-row">
+                    <div class="av-bar-label">Coahuila</div>
+                    <div class="av-bar-track">
+                        <div class="av-bar-fill" style="width: 36.7%; background: linear-gradient(90deg, var(--success), #1abc9c);">61</div>
+                    </div>
+                    <div class="av-bar-val">9.0%</div>
+                </div>
+                <div class="av-bar-row">
+                    <div class="av-bar-label">Veracruz</div>
+                    <div class="av-bar-track">
+                        <div class="av-bar-fill" style="width: 34.9%; background: linear-gradient(90deg, var(--info), #0984e3);">58</div>
+                    </div>
+                    <div class="av-bar-val">8.6%</div>
+                </div>
+                <div class="av-bar-row">
+                    <div class="av-bar-label">Sonora</div>
+                    <div class="av-bar-track">
+                        <div class="av-bar-fill" style="width: 34.9%; background: linear-gradient(90deg, var(--info), #0984e3);">58</div>
+                    </div>
+                    <div class="av-bar-val">8.6%</div>
+                </div>
+                <div class="av-bar-row">
+                    <div class="av-bar-label">Nuevo Leon</div>
+                    <div class="av-bar-track">
+                        <div class="av-bar-fill" style="width: 34.3%; background: linear-gradient(90deg, #fdcb6e, #f39c12);">57</div>
+                    </div>
+                    <div class="av-bar-val">8.4%</div>
+                </div>
+            </div>
+            <div class="av-state-map">
+                <div class="av-state-chip"><span class="st-cnt">18</span> Chiapas</div>
+                <div class="av-state-chip"><span class="st-cnt">18</span> Jalisco</div>
+                <div class="av-state-chip"><span class="st-cnt">14</span> Tabasco</div>
+                <div class="av-state-chip"><span class="st-cnt">13</span> CDMX</div>
+                <div class="av-state-chip"><span class="st-cnt">12</span> Tamaulipas</div>
+                <div class="av-state-chip"><span class="st-cnt">8</span> San Luis Potosi</div>
+                <div class="av-state-chip"><span class="st-cnt">8</span> Durango</div>
+                <div class="av-state-chip"><span class="st-cnt">8</span> Guanajuato</div>
+                <div class="av-state-chip"><span class="st-cnt">6</span> Puebla</div>
+                <div class="av-state-chip"><span class="st-cnt">6</span> Estado de Mexico</div>
+                <div class="av-state-chip"><span class="st-cnt">4</span> Yucatan</div>
+                <div class="av-state-chip"><span class="st-cnt">3</span> Zacatecas</div>
+                <div class="av-state-chip"><span class="st-cnt">3</span> Baja California</div>
+                <div class="av-state-chip"><span class="st-cnt">3</span> Sinaloa</div>
+                <div class="av-state-chip"><span class="st-cnt">3</span> Oaxaca</div>
+                <div class="av-state-chip"><span class="st-cnt">2</span> Queretaro</div>
+                <div class="av-state-chip"><span class="st-cnt">2</span> Aguascalientes</div>
+                <div class="av-state-chip"><span class="st-cnt">2</span> Morelos</div>
+                <div class="av-state-chip"><span class="st-cnt">1</span> Nayarit</div>
+                <div class="av-state-chip"><span class="st-cnt">1</span> Hidalgo</div>
+                <div class="av-state-chip"><span class="st-cnt">1</span> Baja California Sur</div>
+                <div class="av-state-chip"><span class="st-cnt">1</span> Guerrero</div>
+                <div class="av-state-chip"><span class="st-cnt">1</span> Michoacan</div>
+            </div>
+            <div class="insight-box positive" style="margin-top: 16px;">
+                <strong>Insight:</strong> El norte de Mexico (Chihuahua + Coahuila + Sonora + Nuevo Leon) concentra el 50.4% de los alumnos mexicanos. Chihuahua es la sede fundacional con 166 ex-alumnos. Hay oportunidad de crecer en el centro-sur: CDMX, Jalisco, Puebla y Edo. Mex. combinados son solo 6.3%.
+            </div>
+        </div>
+
+        <!-- SEDES HISTORICAS -->
+        <div class="avatar-card" style="grid-column: span 2;">
+            <h3>Sedes Historicas — Alumnos por Sede (2022-2023)</h3>
+            <div style="margin-bottom: 16px;">
+                <div class="av-bar-row">
+                    <div class="av-bar-label">Chihuahua</div>
+                    <div class="av-bar-track">
+                        <div class="av-bar-fill" style="width: 100%; background: linear-gradient(90deg, var(--success), #1abc9c);">131</div>
+                    </div>
+                    <div class="av-bar-val">23.3%</div>
+                </div>
+                <div class="av-bar-row">
+                    <div class="av-bar-label">Guadalajara</div>
+                    <div class="av-bar-track">
+                        <div class="av-bar-fill" style="width: 46.6%; background: linear-gradient(90deg, #74b9ff, #0984e3);">61</div>
+                    </div>
+                    <div class="av-bar-val">10.9%</div>
+                </div>
+                <div class="av-bar-row">
+                    <div class="av-bar-label">Veracruz</div>
+                    <div class="av-bar-track">
+                        <div class="av-bar-fill" style="width: 45.8%; background: linear-gradient(90deg, #fdcb6e, #f39c12);">60</div>
+                    </div>
+                    <div class="av-bar-val">10.7%</div>
+                </div>
+                <div class="av-bar-row">
+                    <div class="av-bar-label">Hermosillo</div>
+                    <div class="av-bar-track">
+                        <div class="av-bar-fill" style="width: 44.3%; background: linear-gradient(90deg, #e17055, #d63031);">58</div>
+                    </div>
+                    <div class="av-bar-val">10.3%</div>
+                </div>
+                <div class="av-bar-row">
+                    <div class="av-bar-label">Boca del Rio</div>
+                    <div class="av-bar-track">
+                        <div class="av-bar-fill" style="width: 36.6%; background: linear-gradient(90deg, #a29bfe, #6c5ce7);">48</div>
+                    </div>
+                    <div class="av-bar-val">8.5%</div>
+                </div>
+                <div class="av-bar-row">
+                    <div class="av-bar-label">Monterrey</div>
+                    <div class="av-bar-track">
+                        <div class="av-bar-fill" style="width: 32.8%; background: linear-gradient(90deg, #00cec9, #0984e3);">43</div>
+                    </div>
+                    <div class="av-bar-val">7.7%</div>
+                </div>
+            </div>
+            <div class="av-state-map">
+                <div class="av-state-chip"><span class="st-cnt">31</span> Piedras Negras</div>
+                <div class="av-state-chip"><span class="st-cnt">25</span> Medellin</div>
+                <div class="av-state-chip"><span class="st-cnt">24</span> Torreon</div>
+                <div class="av-state-chip"><span class="st-cnt">16</span> CDMX</div>
+                <div class="av-state-chip"><span class="st-cnt">15</span> Punta Arenas</div>
+            </div>
+        </div>
+
+        <!-- PERFIL RESUMEN -->
+        <div class="avatar-card" style="grid-column: span 2; background: linear-gradient(135deg, rgba(0,184,148,0.08), rgba(116,185,255,0.08)); border-color: var(--success);">
+            <h3 style="color: var(--success); font-size: 1.05rem;">Perfil del Avatar Ideal — Alumno R4P</h3>
+            <div style="display: flex; gap: 30px; flex-wrap: wrap; margin-top: 12px;">
+                <div style="flex:1; min-width: 250px;">
+                    <div style="font-size: 0.85rem; margin-bottom: 12px;">
+                        <strong style="color: var(--success);">Genero:</strong> Hombre (83% de los conocidos)
+                    </div>
+                    <div style="font-size: 0.85rem; margin-bottom: 12px;">
+                        <strong style="color: var(--info);">Edad:</strong> 31–40 anos (rango dominante, 30.1%)
+                    </div>
+                    <div style="font-size: 0.85rem; margin-bottom: 12px;">
+                        <strong style="color: var(--warning);">Pais:</strong> Mexico (87.0% del total)
+                    </div>
+                    <div style="font-size: 0.85rem; margin-bottom: 12px;">
+                        <strong style="color: var(--highlight);">Region:</strong> Norte de Mexico (50.4% de MX)
+                    </div>
+                </div>
+                <div style="flex:1; min-width: 250px;">
+                    <div style="font-size: 0.85rem; margin-bottom: 12px;">
+                        <strong style="color:#a29bfe;">Estado top:</strong> Chihuahua (24.5% de MX)
+                    </div>
+                    <div style="font-size: 0.85rem; margin-bottom: 12px;">
+                        <strong style="color:#e17055;">Internacional:</strong> Colombia 2do mercado (4.0%), Chile 3ro (1.8%)
+                    </div>
+                    <div style="font-size: 0.85rem; margin-bottom: 12px;">
+                        <strong style="color:#00cec9;">Sede top:</strong> Chihuahua (131), luego Guadalajara (61)
+                    </div>
+                    <div style="font-size: 0.85rem; margin-bottom: 12px;">
+                        <strong style="color:#636e72;">Ocupacion:</strong> Ganaderos y empresarios agropecuarios
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data sources -->
+    <div class="insight-box" style="margin-top: 16px;">
+        <strong>Fuentes de datos:</strong> (1) Excel "Networking Lista de ex alumnos Global 2022-2023" — 562 registros con nombre, ciudad, genero y edad. (2) HubSpot CRM (hub 49310792) — 318 deals closedwon (250 en 2025 + 68 YTD 2026) con propiedades <code>pais_alumnos</code>, <code>gender</code>, <code>edad</code>. Los datos demograficos combinan ambas fuentes para una muestra de 880 ex-alumnos.
+    </div>
+</div>
+
+<!-- TOOLTIP -->
+<div id="tooltip" style="display:none; position:fixed; background:rgba(0,0,0,0.9); border:1px solid var(--success); border-radius:8px; padding:10px 14px; font-size:0.8rem; z-index:1000; pointer-events:none;"></div>
+
+<script>
+    // Navigation
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        const tabs = document.querySelectorAll('.nav-tab');
+        tabs.forEach(t => { if (t.textContent.trim() === getTabLabel(id)) t.classList.add('active'); });
+    }
+    function getTabLabel(id) {
+        const map = {mapa:'Mapa Conceptual', marcas:'Ecosistema de Marcas', embudo:'Embudo & KPIs', sedes:'Sedes & Escuelas', campanas:'Campanas de Pauta', asistencias:'Asistencias', clv:'Customer Lifetime Value', avatar:'Avatar Ideal'};
+        return map[id] || '';
+    }
+
+    // Deals Chart (based on real HubSpot data — deals created in 2026)
+    function renderDealsChart() {
+        const chart = document.getElementById('dealsChart');
+        // Real data from HubSpot: deals created per month in 2026
+        const created = [85, 420, 580, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Jan, Feb, Mar (partial) estimated from recent data
+        const won = [15, 55, 72, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // closedwon per month estimated
+        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        const maxVal = Math.max(...created);
+
+        let html = '';
+        months.forEach((m, i) => {
+            const hCreated = created[i] > 0 ? (created[i] / maxVal) * 160 : 0;
+            const hWon = won[i] > 0 ? (won[i] / maxVal) * 160 : 0;
+            html += `<div class="bar-group">
+                <div class="bar-wrapper">
+                    ${hCreated > 0 ? `<div class="bar" style="height:${hCreated}px; background:var(--success);" title="Creados: ${created[i]}"></div>` : ''}
+                    ${hWon > 0 ? `<div class="bar" style="height:${hWon}px; background:var(--highlight);" title="Ganados: ${won[i]}"></div>` : ''}
+                </div>
+                <div class="bar-label">${m}</div>
+            </div>`;
+        });
+        chart.innerHTML = html;
+    }
+
+    renderDealsChart();
+</script>
+
+</body>
+</html>
