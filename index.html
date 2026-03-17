@@ -2195,72 +2195,260 @@
 <!-- ===== SECCION 5: ASISTENCIAS ===== -->
 <div id="asistencias" class="section">
     <h2 class="section-title">Asistencias por Sede — Escuelas R4P</h2>
-    <p class="section-subtitle">Historico de cursos presenciales documentados en calendario</p>
+    <p class="section-subtitle">Datos reales: Excel ex-alumnos 2022-2023 + HubSpot deals closedwon 2025-2026 — Total: 880 alumnos</p>
 
-    <div class="chart-container">
-        <div class="chart-title"><span>Escuelas Realizadas por Sede y Ano</span></div>
-        <table class="data-table">
-            <thead>
-                <tr><th>Sede</th><th>2024</th><th>2025</th><th>2026 (YTD)</th><th>Proxima programada</th></tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><strong>Chihuahua</strong></td>
-                    <td>Nov 25-29 (5 dias)</td>
-                    <td>Por confirmar</td>
-                    <td>—</td>
-                    <td>Pendiente</td>
-                </tr>
-                <tr>
-                    <td><strong>Monterrey</strong></td>
-                    <td>—</td>
-                    <td>Mar 10-15 (5 dias)</td>
-                    <td>—</td>
-                    <td>Pendiente</td>
-                </tr>
-                <tr>
-                    <td><strong>Tabasco</strong></td>
-                    <td>—</td>
-                    <td>Abr 7-11 (5 dias)</td>
-                    <td>—</td>
-                    <td>Pendiente</td>
-                </tr>
-                <tr>
-                    <td><strong>Medellin (COL)</strong></td>
-                    <td>—</td>
-                    <td>Feb 17-21 (5 dias)</td>
-                    <td>—</td>
-                    <td>Pendiente</td>
-                </tr>
-                <tr>
-                    <td><strong>Venezuela</strong></td>
-                    <td>Feb 26 - Mar 2</td>
-                    <td>Feb 21 + May 23 (La Finca)</td>
-                    <td>—</td>
-                    <td>Pendiente</td>
-                </tr>
-                <tr>
-                    <td><strong>Chile</strong></td>
-                    <td>Alianza con Kusanovic</td>
-                    <td>Nov 20 (SOMEX)</td>
-                    <td>—</td>
-                    <td>Pendiente</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="chart-container">
-        <div class="chart-title"><span>Deals Creados por Mes — 2026 (HubSpot Real)</span></div>
-        <div class="bar-chart" id="dealsChart"></div>
-        <div class="chart-legend">
-            <div class="legend-item"><div class="legend-dot" style="background: var(--success);"></div>Deals creados</div>
-            <div class="legend-item"><div class="legend-dot" style="background: var(--highlight);"></div>Deals ganados (cerrados)</div>
+    <!-- KPI row -->
+    <div style="display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap;">
+        <div class="kpi-card" style="flex:1; min-width:150px; border-color: var(--success);">
+            <div class="label">Total Asistentes</div>
+            <div class="value" style="color: var(--success);">880</div>
+            <div class="trend up">2022–2026</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width:150px; border-color: rgba(162,155,254,0.6);">
+            <div class="label">Sedes Mexico</div>
+            <div class="value" style="color: #a29bfe;">9</div>
+            <div class="trend neutral">CHH, MTY, GDL, HMO, VER, TOR, BDR, CDMX, PN</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width:150px; border-color: var(--info);">
+            <div class="label">Sedes Internacionales</div>
+            <div class="value" style="color: var(--info);">5</div>
+            <div class="trend up">MDE, VEN, BUE, MVD, PTA</div>
+        </div>
+        <div class="kpi-card" style="flex:1; min-width:150px; border-color: var(--warning);">
+            <div class="label">2026 YTD</div>
+            <div class="value" style="color: var(--warning);">69</div>
+            <div class="trend up">MTY 42 + MDE 25 + CHH 2</div>
         </div>
     </div>
 
-    <div class="insight-box positive">
-        <strong>Patron:</strong> Los picos de creacion de deals coinciden con las fechas de escuelas presenciales. Monterrey (Mar 2025) y Tabasco (Abr 2025) muestran alta actividad post-evento. Programar mas escuelas en 2026 para mantener el pipeline activo — actualmente no hay escuelas programadas para 2026.
+    <!-- TABLA PRINCIPAL: Asistentes por sede y año -->
+    <div class="chart-container">
+        <div class="chart-title"><span>Asistentes por Sede y Ano — Datos Reales</span></div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Sede</th>
+                    <th>Pais</th>
+                    <th>2022</th>
+                    <th>2023</th>
+                    <th>2025</th>
+                    <th>2026 YTD</th>
+                    <th>Total</th>
+                    <th>Fuente</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-left: 3px solid var(--success);">
+                    <td><strong style="color: var(--success);">Chihuahua</strong></td>
+                    <td>Mexico</td>
+                    <td>53</td>
+                    <td>78</td>
+                    <td>28</td>
+                    <td>2</td>
+                    <td><strong style="color: var(--success);">161</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">Excel + HubSpot</td>
+                </tr>
+                <tr style="border-left: 3px solid var(--info);">
+                    <td><strong style="color: var(--info);">Monterrey</strong></td>
+                    <td>Mexico</td>
+                    <td>—</td>
+                    <td>44</td>
+                    <td>8</td>
+                    <td style="color: var(--warning);"><strong>42</strong></td>
+                    <td><strong style="color: var(--info);">94</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">Excel + HubSpot</td>
+                </tr>
+                <tr>
+                    <td><strong>Veracruz / Boca del Rio</strong></td>
+                    <td>Mexico</td>
+                    <td>31</td>
+                    <td>48</td>
+                    <td>22</td>
+                    <td>—</td>
+                    <td><strong>101</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">Excel + HubSpot</td>
+                </tr>
+                <tr>
+                    <td><strong>Hermosillo</strong></td>
+                    <td>Mexico</td>
+                    <td>35</td>
+                    <td>23</td>
+                    <td>27</td>
+                    <td>—</td>
+                    <td><strong>85</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">Excel + HubSpot</td>
+                </tr>
+                <tr>
+                    <td><strong>Guadalajara</strong></td>
+                    <td>Mexico</td>
+                    <td>43</td>
+                    <td>18</td>
+                    <td>30</td>
+                    <td>—</td>
+                    <td><strong>91</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">Excel + HubSpot</td>
+                </tr>
+                <tr>
+                    <td><strong>Medellin</strong></td>
+                    <td>Colombia</td>
+                    <td>—</td>
+                    <td>25</td>
+                    <td>13</td>
+                    <td style="color: var(--warning);"><strong>25</strong></td>
+                    <td><strong>63</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">Excel + HubSpot</td>
+                </tr>
+                <tr>
+                    <td><strong>San Cristobal</strong></td>
+                    <td>Venezuela</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>33</td>
+                    <td>—</td>
+                    <td><strong>33</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">HubSpot</td>
+                </tr>
+                <tr>
+                    <td><strong>Piedras Negras</strong></td>
+                    <td>Mexico</td>
+                    <td>—</td>
+                    <td>30</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td><strong>30</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">Excel (privada)</td>
+                </tr>
+                <tr>
+                    <td><strong>Torreon</strong></td>
+                    <td>Mexico</td>
+                    <td>24</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td><strong>24</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">Excel</td>
+                </tr>
+                <tr>
+                    <td><strong>CDMX</strong></td>
+                    <td>Mexico</td>
+                    <td>—</td>
+                    <td>16</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td><strong>16</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">Excel</td>
+                </tr>
+                <tr>
+                    <td><strong>Punta Arenas</strong></td>
+                    <td>Chile</td>
+                    <td>—</td>
+                    <td>15</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td><strong>15</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">Excel</td>
+                </tr>
+                <tr>
+                    <td><strong>Buenos Aires</strong></td>
+                    <td>Argentina</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>13</td>
+                    <td>—</td>
+                    <td><strong>13</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">HubSpot</td>
+                </tr>
+                <tr>
+                    <td><strong>Montevideo</strong></td>
+                    <td>Uruguay</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>8</td>
+                    <td>—</td>
+                    <td><strong>8</strong></td>
+                    <td style="font-size:0.7rem; color:#636e72;">HubSpot</td>
+                </tr>
+                <tr style="background: rgba(0,184,148,0.08); font-weight: bold;">
+                    <td style="color: var(--success);">TOTAL REGISTRADOS</td>
+                    <td></td>
+                    <td>186</td>
+                    <td>297</td>
+                    <td>182</td>
+                    <td style="color: var(--warning);">69</td>
+                    <td style="color: var(--success);">734</td>
+                    <td style="font-size:0.7rem; color:#636e72;">+67 sin sede (HS) +78 becas</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="margin-top: 12px; font-size: 0.75rem; color: #636e72;">Nota: 2022-2023 de lista Excel "Networking Lista de ex alumnos Global". 2025-2026 de HubSpot deals closedwon. 2024 no disponible en ninguna fuente — si hay datos, compartilos para completar. 67 deals de 2025 no tienen sede asignada en HubSpot. Chihuahua 2023 incluye 28 escuela regular + 50 becados.</p>
+    </div>
+
+    <!-- Grafico de barras por sede -->
+    <div class="chart-container">
+        <div class="chart-title"><span>Top Sedes por Total de Asistentes (2022-2026)</span></div>
+        <div style="padding: 10px 0;">
+            <div class="av-bar-row">
+                <div class="av-bar-label" style="min-width:110px;">Chihuahua</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 100%; background: linear-gradient(90deg, var(--success), #1abc9c);">161</div>
+                </div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label" style="min-width:110px;">Veracruz/BDR</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 62.7%; background: linear-gradient(90deg, #fdcb6e, #f39c12);">101</div>
+                </div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label" style="min-width:110px;">Monterrey</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 58.4%; background: linear-gradient(90deg, var(--info), #0984e3);">94</div>
+                </div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label" style="min-width:110px;">Guadalajara</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 56.5%; background: linear-gradient(90deg, #74b9ff, #0984e3);">91</div>
+                </div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label" style="min-width:110px;">Hermosillo</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 52.8%; background: linear-gradient(90deg, #e17055, #d63031);">85</div>
+                </div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label" style="min-width:110px;">Medellin</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 39.1%; background: linear-gradient(90deg, #a29bfe, #6c5ce7);">63</div>
+                </div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label" style="min-width:110px;">San Cristobal</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 20.5%; background: linear-gradient(90deg, #00cec9, #0984e3);">33</div>
+                </div>
+            </div>
+            <div class="av-bar-row">
+                <div class="av-bar-label" style="min-width:110px;">Piedras Negras</div>
+                <div class="av-bar-track">
+                    <div class="av-bar-fill" style="width: 18.6%; background: linear-gradient(90deg, #636e72, #b2bec3);">30</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="avatar-grid" style="margin-top: 16px;">
+        <div class="insight-box positive">
+            <strong>Crecimiento 2026:</strong> Monterrey es la sede estrella de 2026 con 42 inscritos YTD (61% del total). Medellin crece fuerte con 25 inscritos, duplicando su 2025 completo (13). Estas dos sedes concentran el 97% de la actividad 2026.
+        </div>
+        <div class="insight-box">
+            <strong>Oportunidad:</strong> Guadalajara (91 historicos) y Hermosillo (85) no tienen escuela programada en 2026. Veracruz tampoco. Reactivar estas sedes podria generar 60-80 alumnos adicionales basado en promedios historicos.
+        </div>
+        <div class="insight-box" style="border-color: var(--highlight);">
+            <strong>Dato faltante:</strong> No hay datos de asistencias para 2024. El Excel cubre 2022-2023 y HubSpot arranca en 2025. Si existe una lista de alumnos 2024, agregarla completaria el panorama y permitiria ver la tendencia ano a ano.
+        </div>
     </div>
 </div>
 
